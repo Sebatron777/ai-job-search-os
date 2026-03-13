@@ -5,6 +5,6 @@
   "framework": "nextjs",
   "outputDirectory": "apps/web/.next",
   "env": {
-    "NEXT_PUBLIC_API_URL": "https://ai-job-search-api.onrender.com"
+    "NEXT_PUBLIC_API_URL": "https://ai-job-search-api.up.railway.app"
   }
 }
