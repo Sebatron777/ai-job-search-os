@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Job Search OS - Deploy Guide</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 { color: #667eea; margin-bottom: 10px; }
+        h2 { color: #333; margin-top: 30px; }
+        .step {
+            background: #f7fafc;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        .step-number {
+            background: #667eea;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        code {
+            background: #2d3748;
+            color: #68d391;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+        }
+        .button {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            margin: 10px 0;
+            transition: transform 0.2s;
+        }
+        .button:hover {
+            transform: translateY(-2px);
+            background: #5568d3;
+        }
+        .warning {
+            background: #fffaf0;
+            border-left: 4px solid #ed8936;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        .success {
+            background: #f0fff4;
+            border-left: 4px solid #48bb78;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        ul { line-height: 1.8; }
+        a { color: #667eea; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 AI Job Search OS - Deploy Guide</h1>
+        <p>Быстрый деплой на Vercel за 5 минут</p>
+
+        <div class="step">
+            <h2><span class="step-number">1</span>Создать GitHub репозиторий</h2>
+            <p>Откройте ссылку ниже в браузере:</p>
+            <a href="https://github.com/new" class="button" target="_blank">
+                📦 Открыть GitHub New Repository
+            </a>
+            <p><strong>Имя репозитория:</strong> <code>ai-job-search-os</code></p>
+            <p>Public или Private - на ваш выбор</p>
+            <p>Нажмите <strong>"Create repository"</strong></p>
+        </div>
+
+        <div class="step">
+            <h2><span class="step-number">2</span>Запушить код на GitHub</h2>
+            <p>Выполните в терминале (скопируйте и вставьте):</p>
+            <code>cd "/Users/djo/projekt_ALL/job searcher  AI"</code><br><br>
+            <code>git remote add origin https://github.com/YOUR_USERNAME/ai-job-search-os.git</code><br><br>
+            <code>git push -u origin main</code>
+            <div class="warning">
+                ⚠️ Замените <code>YOUR_USERNAME</code> на ваш GitHub username!
+            </div>
+        </div>
+
+        <div class="step">
+            <h2><span class="step-number">3</span>Задеплоить на Vercel</h2>
+            <p>Откройте ссылку ниже:</p>
+            <a href="https://vercel.com/new" class="button" target="_blank">
+                🔷 Открыть Vercel Deploy
+            </a>
+            <p><strong>Действия:</strong></p>
+            <ol>
+                <li>Нажмите <strong>"Import Git Repository"</strong></li>
+                <li>Выберите ваш репозиторий <code>ai-job-search-os</code></li>
+                <li><strong>Root Directory:</strong> <code>apps/web</code></li>
+                <li><strong>Build Command:</strong> <code>cd ../.. && pnpm install && pnpm build</code></li>
+                <li><strong>Environment Variables:</strong>
+                    <ul>
+                        <li><code>NEXT_PUBLIC_API_URL</code> = <code>http://localhost:3001</code> (для тестов)</li>
+                    </ul>
+                </li>
+                <li>Нажмите <strong>"Deploy"</strong></li>
+            </ol>
+        </div>
+
+        <div class="success">
+            <h3>✅ Готово!</h3>
+            <p>Через 2-3 минуты ваш frontend будет доступен по URL:</p>
+            <p><code>https://ai-job-search-os.vercel.app</code></p>
+        </div>
+
+        <div class="warning">
+            <h3>⚠️ Важно про API</h3>
+            <p>Frontend на Vercel должен иметь доступ к API:</p>
+            <ul>
+                <li><strong>Для тестов:</strong> Оставьте API локально запущенным</li>
+                <li><strong>Для production:</strong> Задеплойте API на <a href="https://render.com" target="_blank">Render</a></li>
+            </ul>
+            <p>Полная инструкция: <a href="./DEPLOY_INSTRUCTION.md" target="_blank">DEPLOY_INSTRUCTION.md</a></p>
+        </div>
+
+        <div class="step">
+            <h2>📚 Дополнительные ресурсы</h2>
+            <ul>
+                <li><a href="./VERCEL_DEPLOY.md" target="_blank">VERCEL_DEPLOY.md</a> - Детальная инструкция</li>
+                <li><a href="./DEPLOY.md" target="_blank">DEPLOY.md</a> - Все варианты деплоя</li>
+                <li><a href="./QUICKSTART.md" target="_blank">QUICKSTART.md</a> - Локальный запуск</li>
+            </ul>
+        </div>
+
+        <hr style="margin: 40px 0; border: none; border-top: 1px solid #e2e8f0;">
+        
+        <p style="text-align: center; color: #718096;">
+            🎉 Успешного деплоя! Если что-то не работает - проверьте логи в Vercel Dashboard
+        </p>
+    </div>
+</body>
+</html>
