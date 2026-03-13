@@ -1,0 +1,23 @@
+# .renderignore - файлы которые не нужны на Render
+
+node_modules
+dist
+.next
+coverage
+*.log
+.env.local
+.env*.local
+.DS_Store
+.vscode
+.idea
+*.md
+!README.md
+apps/web
+packages
+workers
+tests
+e2e
+*.test.ts
+*.spec.ts
+vitest.config.ts
+tsconfig.tsbuildinfo
