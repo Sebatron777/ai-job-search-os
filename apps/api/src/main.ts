@@ -1,0 +1,68 @@
+import { NestFactory } from "@nestjs/core";
+import { ValidationPipe } from "@nestjs/common";
+import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
+import { ConfigService } from "@nestjs/config";
+import { AppModule } from "./app.module";
+import { setupObservability } from "./observability";
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule, {
+    logger: ["error", "warn", "log", "debug", "verbose"],
+  });
+
+  const configService = app.get(ConfigService);
+
+  // Global validation pipe
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+      transformOptions: {
+        enableImplicitConversion: true,
+      },
+    })
+  );
+
+  // CORS
+  app.enableCors({
+    origin: configService.get("FRONTEND_URL", "http://localhost:3000"),
+    credentials: true,
+  });
+
+  // Swagger/OpenAPI documentation
+  const config = new DocumentBuilder()
+    .setTitle("AI Job Search OS API")
+    .setDescription("REST API for AI Job Search OS platform")
+    .setVersion("1.0")
+    .addBearerAuth()
+    .addTag("auth", "Authentication endpoints")
+    .addTag("users", "User management")
+    .addTag("workspaces", "Workspace management")
+    .addTag("profiles", "Candidate profiles")
+    .addTag("resumes", "Resume assets")
+    .addTag("jobs", "Job listings")
+    .addTag("sources", "Job sources")
+    .addTag("applications", "Applications")
+    .addTag("matching", "Job matching")
+    .addTag("integrations", "External integrations")
+    .addTag("analytics", "Analytics and metrics")
+    .build();
+
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup("api/docs", app, document);
+
+  // Observability
+  await setupObservability(app);
+
+  const port = configService.get("PORT", 3001);
+  await app.listen(port);
+  
+  console.log(`🚀 API running on http://localhost:${port}`);
+  console.log(`📚 Swagger docs: http://localhost:${port}/api/docs`);
+}
+
+bootstrap().catch((error) => {
+  console.error("Failed to start application:", error);
+  process.exit(1);
+});

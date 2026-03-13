@@ -1,0 +1,110 @@
+import { Injectable } from "@nestjs/common";
+import { PrismaService } from "../database/prisma.service";
+import {
+  DraftGenerationService as DraftWorkerService,
+  MockLLMClient,
+} from "@ai-job-search/workers";
+
+@Injectable()
+export class DraftGenerationService {
+  private workerService: DraftWorkerService;
+
+  constructor(private prisma: PrismaService) {
+    // Инициализация с mock LLM клиентом
+    const llmClient = new MockLLMClient();
+    this.workerService = new DraftWorkerService({
+      llmClient,
+      tone: "professional",
+      maxCoverLetterWords: 250,
+    });
+  }
+
+  /**
+   * Сгенерировать черновик отклика
+   */
+  async generateDraft(
+    jobId: string,
+    candidateProfileId: string
+  ) {
+    // Загружаем данные
+    const [job, candidate, resumes, portfolioLinks] = await Promise.all([
+      this.prisma.job.findUnique({
+        where: { id: jobId },
+      }),
+      this.prisma.candidateProfile.findUnique({
+        where: { id: candidateProfileId },
+      }),
+      this.prisma.resumeAsset.findMany({
+        where: { candidateProfileId },
+      }),
+      this.prisma.portfolioLink.findMany({
+        where: { candidateProfileId },
+      }),
+    ]);
+
+    if (!job) throw new Error("Job not found");
+    if (!candidate) throw new Error("Candidate not found");
+
+    // Генерируем черновик
+    const result = await this.workerService.generateDraft(
+      job,
+      candidate,
+      resumes || [],
+      portfolioLinks || []
+    );
+
+    // Сохраняем черновик в БД
+    const draft = await this.prisma.applicationDraft.create({
+      data: {
+        workspaceId: job.workspaceId,
+        jobId,
+        candidateProfileId,
+        coverLetter: result.coverLetter,
+        introMessage: result.introMessage,
+        customAnswers: result.customAnswers,
+        resumeAssetId: result.selectedResume.id,
+        portfolioLinkIds: result.selectedPortfolioLinks.map(p => p.id),
+        generationModel: "mock-llm",
+        generationVersion: "1.0",
+        validationStatus: result.validationErrors.length === 0 ? "validated" : "failed",
+        validationErrors: result.validationErrors,
+        factualChecks: result.factualChecks,
+        approvalStatus: "pending",
+      },
+    });
+
+    return {
+      draft,
+      result,
+    };
+  }
+
+  /**
+   * Обновить черновик
+   */
+  async updateDraft(
+    draftId: string,
+    updates: {
+      coverLetter?: string;
+      introMessage?: string;
+      customAnswers?: Record<string, string>;
+      resumeAssetId?: string;
+    }
+  ) {
+    return this.prisma.applicationDraft.update({
+      where: { id: draftId },
+      data: updates,
+    });
+  }
+
+  /**
+   * Удалить черновик
+   */
+  async deleteDraft(draftId: string) {
+    await this.prisma.applicationDraft.delete({
+      where: { id: draftId },
+    });
+
+    return { success: true };
+  }
+}

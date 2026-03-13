@@ -1,0 +1,21 @@
+{
+  "name": "@ai-job-search/workers",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "files": ["src"],
+  "scripts": {
+    "lint": "eslint src",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@ai-job-search/config": "workspace:*",
+    "@ai-job-search/types": "workspace:*",
+    "typescript": "^5.6.2",
+    "vitest": "^2.1.1"
+  }
+}

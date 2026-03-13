@@ -1,0 +1,3 @@
+{
+  "extends": "@ai-job-search/config/tsconfig"
+}

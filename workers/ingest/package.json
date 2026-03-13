@@ -1,0 +1,23 @@
+{
+  "name": "@ai-job-search/ingest-worker",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node --loader ts-node/esm src/worker.ts",
+    "dev": "tsx watch src/worker.ts",
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "bullmq": "^5.1.0",
+    "@ai-job-search/workers": "workspace:*",
+    "@ai-job-search/types": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "typescript": "^5.6.2",
+    "tsx": "^4.7.0",
+    "ts-node": "^10.9.2"
+  }
+}

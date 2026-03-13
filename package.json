@@ -1,0 +1,32 @@
+{
+  "name": "ai-job-search-os",
+  "version": "0.0.1",
+  "private": true,
+  "description": "AI-powered job search and application automation platform",
+  "scripts": {
+    "dev": "concurrently \"pnpm dev:api\" \"pnpm dev:web\"",
+    "dev:api": "pnpm --filter @ai-job-search/api dev",
+    "dev:web": "pnpm --filter @ai-job-search/web dev",
+    "dev:worker": "pnpm --filter @ai-job-search/ingest-worker dev",
+    "build": "pnpm -r build",
+    "build:api": "pnpm --filter @ai-job-search/api build",
+    "build:web": "pnpm --filter @ai-job-search/web build",
+    "lint": "pnpm -r lint",
+    "test": "pnpm -r test",
+    "test:e2e": "pnpm --filter @ai-job-search/web test:e2e",
+    "test:cycle": "tsx apps/api/scripts/test-full-cycle.ts",
+    "db:migrate": "pnpm --filter @ai-job-search/api db:migrate",
+    "db:generate": "pnpm --filter @ai-job-search/api db:generate",
+    "db:studio": "pnpm --filter @ai-job-search/api db:studio",
+    "db:seed": "pnpm --filter @ai-job-search/api db:seed"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "tsx": "^4.21.0"
+  },
+  "packageManager": "pnpm@9.4.0",
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  }
+}

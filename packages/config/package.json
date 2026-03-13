@@ -1,0 +1,13 @@
+{
+  "name": "@ai-job-search/config",
+  "version": "0.0.1",
+  "private": true,
+  "exports": {
+    "./tsconfig": "./tsconfig.base.json",
+    "./eslint": "./eslint.config.js"
+  },
+  "files": [
+    "tsconfig.base.json",
+    "eslint.config.js"
+  ]
+}
