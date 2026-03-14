@@ -11,7 +11,7 @@ export class AnalyticsService {
       select: { status: true },
     });
 
-    const byStatus = applications.reduce((acc, app) => {
+    const byStatus = applications.reduce((acc: any, app: any) => {
       acc[app.status] = (acc[app.status] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
