@@ -19,7 +19,9 @@
     "db:migrate": "pnpm --filter @ai-job-search/api db:migrate",
     "db:generate": "pnpm --filter @ai-job-search/api db:generate",
     "db:studio": "pnpm --filter @ai-job-search/api db:studio",
-    "db:seed": "pnpm --filter @ai-job-search/api db:seed"
+    "db:seed": "pnpm --filter @ai-job-search/api db:seed",
+    "start": "node apps/api/dist/main.js",
+    "start:api": "node apps/api/dist/main.js"
   },
   "devDependencies": {
     "concurrently": "^8.2.2",
