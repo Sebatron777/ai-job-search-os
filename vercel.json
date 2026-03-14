@@ -1,9 +1,9 @@
 {
-  "buildCommand": "cd apps/web && pnpm build",
-  "installCommand": "cd apps/web && pnpm install",
-  "devCommand": "cd apps/web && pnpm dev",
+  "buildCommand": "pnpm install && pnpm build",
+  "installCommand": "pnpm install",
+  "devCommand": "pnpm dev",
   "framework": "nextjs",
-  "outputDirectory": "apps/web/.next",
+  "outputDirectory": ".next",
   "env": {
     "NEXT_PUBLIC_API_URL": "https://ai-job-search-api-production.up.railway.app"
   }
