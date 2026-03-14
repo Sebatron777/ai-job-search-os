@@ -24,9 +24,9 @@ async function bootstrap() {
     })
   );
 
-  // CORS
+  // CORS - разрешаем все origin для production
   app.enableCors({
-    origin: configService.get("FRONTEND_URL", "http://localhost:3000"),
+    origin: true, // Разрешаем все origin (для production лучше указать конкретный Vercel URL)
     credentials: true,
   });
 
