@@ -1,0 +1,9 @@
+# Игнорируем workers пока
+workers/
+apps/api/node_modules
+apps/web/node_modules
+packages/*/node_modules
+node_modules
+*.test.ts
+*.md
+!README.md
