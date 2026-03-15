@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev --port 3000",
-    "build": "cd ../.. && pnpm install && pnpm --filter @ai-job-search/web build",
-    "build:local": "next build",
+    "build": "next build",
+    "build:mono": "cd ../.. && pnpm install && pnpm --filter @ai-job-search/web build",
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
