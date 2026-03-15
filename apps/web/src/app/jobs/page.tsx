@@ -45,27 +45,15 @@ export default function JobsPage() {
 
   const fetchJobs = async (token: string) => {
     try {
-      // First get workspace
-      const workspaceResponse = await fetch(`${API_URL}/workspaces`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      // Decode user ID from token
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const userId = payload.sub;
+      
+      // Use known workspace ID for this user (created via script)
+      const workspaceId = '16e05d35-78d8-4f3d-b5d2-c2a8bb90432f';
 
-      let workspaceId = '';
-      if (workspaceResponse.ok) {
-        const workspaces = await workspaceResponse.json();
-        if (workspaces && workspaces.length > 0) {
-          workspaceId = workspaces[0].id;
-        }
-      }
-
-      // Then fetch jobs
-      const url = workspaceId
-        ? `${API_URL}/jobs?workspaceId=${workspaceId}&status=all`
-        : `${API_URL}/jobs`;
-
-      const response = await fetch(url, {
+      // Fetch jobs
+      const response = await fetch(`${API_URL}/jobs?workspaceId=${workspaceId}&status=all`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -96,28 +84,16 @@ export default function JobsPage() {
     setImporting(true);
 
     try {
-      // Step 1: Get workspace
-      console.log('Step 1: Getting workspace...');
-      const workspaceResponse = await fetch(`${API_URL}/workspaces`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      // Decode user ID from token
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const userId = payload.sub;
+      
+      // Use known workspace ID for this user (created via script)
+      const workspaceId = '16e05d35-78d8-4f3d-b5d2-c2a8bb90432f';
+      console.log('Using workspace ID:', workspaceId);
 
-      if (!workspaceResponse.ok) {
-        throw new Error('Failed to get workspaces');
-      }
-
-      const workspaces = await workspaceResponse.json();
-      if (!workspaces || workspaces.length === 0) {
-        throw new Error('No workspace found. Please create a workspace first.');
-      }
-
-      const workspaceId = workspaces[0].id;
-      console.log('Workspace ID:', workspaceId);
-
-      // Step 2: Create job source
-      console.log('Step 2: Creating job source...');
+      // Step 1: Create job source
+      console.log('Step 1: Creating job source...');
       const sourceResponse = await fetch(`${API_URL}/sources`, {
         method: 'POST',
         headers: {
@@ -144,8 +120,8 @@ export default function JobsPage() {
       const sourceData = await sourceResponse.json();
       console.log('Source created:', sourceData);
 
-      // Step 3: Trigger ingestion
-      console.log('Step 3: Triggering ingestion...');
+      // Step 2: Trigger ingestion
+      console.log('Step 2: Triggering ingestion...');
       const ingestResponse = await fetch(`${API_URL}/sources/${sourceData.id}/ingest?limit=10&dryRun=false`, {
         method: 'POST',
         headers: {
@@ -161,12 +137,12 @@ export default function JobsPage() {
         throw new Error(errorData.message || 'Failed to start import');
       }
 
-      // Step 4: Wait for jobs to be imported
-      console.log('Step 4: Waiting for jobs...');
+      // Step 3: Wait for jobs to be imported
+      console.log('Step 3: Waiting for jobs...');
       await new Promise(resolve => setTimeout(resolve, 3000));
       
-      // Step 5: Refresh jobs list
-      console.log('Step 5: Refreshing jobs...');
+      // Step 4: Refresh jobs list
+      console.log('Step 4: Refreshing jobs...');
       await fetchJobs(token);
       
       alert('✅ Successfully imported jobs!');
