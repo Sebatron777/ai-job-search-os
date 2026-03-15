@@ -166,6 +166,39 @@ export default function DashboardPage() {
             <li>Frontend: <code className="bg-blue-100 dark:bg-blue-800 px-2 py-1 rounded">Vercel</code></li>
             <li>Database: <code className="bg-blue-100 dark:bg-blue-800 px-2 py-1 rounded">Railway PostgreSQL</code></li>
           </ul>
+          
+          {/* Create Workspace Button */}
+          <button
+            onClick={async () => {
+              const token = localStorage.getItem('token');
+              if (!token) return;
+              
+              try {
+                const response = await fetch(`${API_URL}/workspaces`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                  },
+                  body: JSON.stringify({
+                    name: 'My Workspace',
+                  }),
+                });
+                
+                if (response.ok) {
+                  alert('✅ Workspace created! Refresh the page.');
+                } else {
+                  const error = await response.json();
+                  alert('❌ Error: ' + (error.message || 'Failed to create workspace'));
+                }
+              } catch (error) {
+                alert('❌ Error creating workspace');
+              }
+            }}
+            className="mt-4 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+          >
+            🔧 Create Workspace (Fix)
+          </button>
         </div>
       </main>
     </div>
