@@ -1,6 +1,5 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../database/prisma.service";
-import { IngestionQueueService } from "../queue/ingestion-queue.service";
 
 export interface CreateJobSourceDto {
   name: string;
@@ -17,10 +16,7 @@ export interface UpdateJobSourceDto {
 
 @Injectable()
 export class JobSourcesService {
-  constructor(
-    private prisma: PrismaService,
-    private ingestionQueue: IngestionQueueService
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
   async findByWorkspace(workspaceId: string) {
     return this.prisma.jobSource.findMany({
@@ -72,29 +68,6 @@ export class JobSourcesService {
     });
 
     return { success: true };
-  }
-
-  async triggerIngestion(
-    sourceId: string,
-    options?: { limit?: number; dryRun?: boolean }
-  ): Promise<string> {
-    const source = await this.findById(sourceId);
-
-    const jobId = await this.ingestionQueue.addIngestionJob(
-      sourceId,
-      source.workspaceId,
-      options
-    );
-
-    await this.prisma.jobSource.update({
-      where: { id: sourceId },
-      data: {
-        lastCollectionAt: new Date(),
-        lastCollectionStatus: "pending",
-      },
-    });
-
-    return jobId;
   }
 
   async getCollectionStatus(sourceId: string) {
