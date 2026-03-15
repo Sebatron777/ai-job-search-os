@@ -139,13 +139,21 @@ export default function JobsPage() {
 
       // Step 3: Wait for jobs to be imported
       console.log('Step 3: Waiting for jobs...');
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
       // Step 4: Refresh jobs list
       console.log('Step 4: Refreshing jobs...');
       await fetchJobs(token);
       
+      // Force re-render
+      setJobs([...jobs]);
+      
       alert('✅ Successfully imported jobs!');
+      
+      // Auto-refresh after alert closes
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
     } catch (error) {
       console.error('Full error:', error);
       alert('❌ Failed to import jobs: ' + (error instanceof Error ? error.message : 'Unknown error'));
