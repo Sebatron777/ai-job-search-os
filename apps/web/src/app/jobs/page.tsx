@@ -45,7 +45,27 @@ export default function JobsPage() {
 
   const fetchJobs = async (token: string) => {
     try {
-      const response = await fetch(`${API_URL}/jobs?limit=20`, {
+      // First get workspace
+      const workspaceResponse = await fetch(`${API_URL}/workspaces`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      let workspaceId = '';
+      if (workspaceResponse.ok) {
+        const workspaces = await workspaceResponse.json();
+        if (workspaces && workspaces.length > 0) {
+          workspaceId = workspaces[0].id;
+        }
+      }
+
+      // Then fetch jobs
+      const url = workspaceId
+        ? `${API_URL}/jobs?workspaceId=${workspaceId}&status=all`
+        : `${API_URL}/jobs`;
+
+      const response = await fetch(url, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -77,7 +97,7 @@ export default function JobsPage() {
 
     try {
       // Create mock source
-      const sourceResponse = await fetch(`${API_URL}/job-sources`, {
+      const sourceResponse = await fetch(`${API_URL}/sources`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -92,13 +112,14 @@ export default function JobsPage() {
       });
 
       if (!sourceResponse.ok) {
-        throw new Error('Failed to create job source');
+        const errorData = await sourceResponse.json();
+        throw new Error(errorData.message || 'Failed to create job source');
       }
 
       const sourceData = await sourceResponse.json();
 
       // Trigger ingestion
-      const ingestResponse = await fetch(`${API_URL}/job-sources/${sourceData.id}/ingest`, {
+      const ingestResponse = await fetch(`${API_URL}/sources/${sourceData.id}/ingest?limit=10&dryRun=false`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -106,7 +127,8 @@ export default function JobsPage() {
       });
 
       if (!ingestResponse.ok) {
-        throw new Error('Failed to start import');
+        const errorData = await ingestResponse.json();
+        throw new Error(errorData.message || 'Failed to start import');
       }
 
       // Wait a bit for jobs to be imported
