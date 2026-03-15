@@ -32,31 +32,32 @@ export class JobsController {
   }
 
   @Post("clean-duplicates")
-  @ApiOperation({ summary: "Clean duplicate jobs by canonicalUrl" })
+  @ApiOperation({ summary: "Clean duplicate jobs by title+company" })
   async cleanDuplicates(@Query("workspaceId") workspaceId: string) {
     // Get all jobs for workspace
     const allJobs = await this.prisma.job.findMany({
       where: { workspaceId },
       select: {
         id: true,
-        canonicalUrl: true,
+        title: true,
+        company: true,
       },
     });
 
-    // Find duplicates by canonicalUrl
-    const urlMap = new Map<string, string[]>();
+    // Find duplicates by title+company
+    const keyMap = new Map<string, string[]>();
 
     for (const job of allJobs) {
-      const url = job.canonicalUrl;
-      const existing = urlMap.get(url) || [];
+      const key = `${job.title.toLowerCase()}|${job.company.toLowerCase()}`;
+      const existing = keyMap.get(key) || [];
       existing.push(job.id);
-      urlMap.set(url, existing);
+      keyMap.set(key, existing);
     }
 
     // Delete duplicates (keep first)
     let deletedCount = 0;
 
-    for (const [url, jobIds] of urlMap.entries()) {
+    for (const [key, jobIds] of keyMap.entries()) {
       if (jobIds.length > 1) {
         // Keep first, delete rest
         const toDelete = jobIds.slice(1);
