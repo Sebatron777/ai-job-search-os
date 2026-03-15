@@ -66,9 +66,9 @@ export default function DashboardPage() {
               </h1>
             </div>
             <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-700 dark:text-gray-300">
+              <Link href="/profile" className="text-sm text-gray-700 dark:text-gray-300 hover:text-blue-600">
                 {user?.name || user?.email}
-              </span>
+              </Link>
               <button
                 onClick={handleLogout}
                 className="text-sm text-red-600 hover:text-red-500 dark:text-red-400"
@@ -133,10 +133,10 @@ export default function DashboardPage() {
             href="/jobs"
           />
           <QuickActionCard
-            title="View Jobs"
-            description="See available jobs in the system"
-            icon="🎯"
-            href="/jobs"
+            title="My Profile"
+            description="Manage your account settings"
+            icon="👤"
+            href="/profile"
           />
         </div>
 

@@ -18,7 +18,8 @@
     "db:migrate:reset": "prisma migrate reset",
     "db:studio": "prisma studio",
     "db:seed": "tsx prisma/seed.ts",
-    "create-workspace": "tsx scripts/create-workspace.ts"
+    "create-workspace": "tsx scripts/create-workspace.ts",
+    "clean-jobs": "tsx scripts/clean-duplicate-jobs.ts"
   },
   "dependencies": {
     "@ai-job-search/prompts": "workspace:*",
