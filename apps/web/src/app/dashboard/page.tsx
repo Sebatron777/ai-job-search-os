@@ -106,31 +106,37 @@ export default function DashboardPage() {
             value={0}
             icon="📝"
             color="yellow"
-            href="/jobs"
+            href="/applications"
           />
           <StatCard
             title="Interviews"
             value={0}
             icon="🎯"
             color="green"
-            href="/jobs"
+            href="/applications?filter=interviewing"
           />
           <StatCard
             title="Offers"
             value={0}
             icon="🎉"
             color="purple"
-            href="/jobs"
+            href="/applications?filter=offered"
           />
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <QuickActionCard
             title="Browse Jobs"
             description="View all imported job opportunities"
             icon="📥"
             href="/jobs"
+          />
+          <QuickActionCard
+            title="My Applications"
+            description="Track your job applications"
+            icon="📝"
+            href="/applications"
           />
           <QuickActionCard
             title="My Profile"
