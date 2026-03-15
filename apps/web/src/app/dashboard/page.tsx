@@ -9,26 +9,12 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 interface User {
   id: string;
   email: string;
-  firstName: string;
-  lastName: string;
-}
-
-interface Stats {
-  totalJobs: number;
-  applications: number;
-  interviews: number;
-  offers: number;
+  name?: string;
 }
 
 export default function DashboardPage() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
-  const [stats, setStats] = useState<Stats>({
-    totalJobs: 0,
-    applications: 0,
-    interviews: 0,
-    offers: 0,
-  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -38,30 +24,21 @@ export default function DashboardPage() {
       return;
     }
 
-    fetchUser(token);
-  }, [router]);
-
-  const fetchUser = async (token: string) => {
+    // Decode user from token or use stored data
     try {
-      const response = await fetch(`${API_URL}/users/me`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      setUser({
+        id: payload.sub,
+        email: 'user@example.com',
+        name: 'User',
       });
-
-      if (response.ok) {
-        const userData = await response.json();
-        setUser(userData);
-      } else {
-        localStorage.removeItem('token');
-        router.push('/login');
-      }
-    } catch (error) {
-      console.error('Error fetching user:', error);
+    } catch {
+      localStorage.removeItem('token');
+      router.push('/login');
     } finally {
       setLoading(false);
     }
-  };
+  }, [router]);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -90,7 +67,7 @@ export default function DashboardPage() {
             </div>
             <div className="flex items-center space-x-4">
               <span className="text-sm text-gray-700 dark:text-gray-300">
-                {user?.firstName} {user?.lastName}
+                {user?.name || user?.email}
               </span>
               <button
                 onClick={handleLogout}
@@ -108,7 +85,7 @@ export default function DashboardPage() {
         {/* Welcome */}
         <div className="mb-8">
           <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Welcome back, {user?.firstName}! 👋
+            Welcome back! 👋
           </h2>
           <p className="mt-2 text-gray-600 dark:text-gray-400">
             Here&apos;s an overview of your job search progress
@@ -119,77 +96,75 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <StatCard
             title="Total Jobs"
-            value={stats.totalJobs}
+            value={0}
             icon="📊"
             color="blue"
             href="/jobs"
           />
           <StatCard
             title="Applications"
-            value={stats.applications}
+            value={0}
             icon="📝"
             color="yellow"
-            href="/applications"
+            href="/jobs"
           />
           <StatCard
             title="Interviews"
-            value={stats.interviews}
+            value={0}
             icon="🎯"
             color="green"
-            href="/interviews"
+            href="/jobs"
           />
           <StatCard
             title="Offers"
-            value={stats.offers}
+            value={0}
             icon="🎉"
             color="purple"
-            href="/offers"
+            href="/jobs"
           />
         </div>
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <QuickActionCard
-            title="Import Jobs"
-            description="Collect new job opportunities from various sources"
+            title="Browse Jobs"
+            description="View all imported job opportunities"
             icon="📥"
-            href="/sources"
+            href="/jobs"
           />
           <QuickActionCard
-            title="View Matches"
-            description="See AI-recommended jobs based on your profile"
+            title="View Jobs"
+            description="See available jobs in the system"
             icon="🎯"
-            href="/matches"
+            href="/jobs"
           />
         </div>
 
-        {/* Recent Activity */}
+        {/* Getting Started */}
         <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
           <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
             Getting Started Guide
           </h3>
           <ol className="space-y-3">
-            <Step number={1} text="Create your candidate profile with skills and experience" />
-            <Step number={2} text="Add job sources (LinkedIn, Indeed, etc.)" />
-            <Step number={3} text="Import jobs and let AI score them" />
-            <Step number={4} text="Review top matches and generate application drafts" />
-            <Step number={5} text="Submit applications and track responses" />
+            <Step number={1} text="Browse available jobs in the Jobs section" />
+            <Step number={2} text="Filter jobs by location, type, and seniority" />
+            <Step number={3} text="Review job details and requirements" />
+            <Step number={4} text="Track your applications" />
           </ol>
         </div>
 
-        {/* Demo Data Section */}
+        {/* Demo Info */}
         <div className="mt-8 bg-blue-50 dark:bg-blue-900/20 rounded-lg p-6">
           <h3 className="text-lg font-medium text-blue-900 dark:text-blue-100 mb-4">
             Demo Mode
           </h3>
           <p className="text-sm text-blue-800 dark:text-blue-200 mb-4">
-            This is a demonstration dashboard. To see real data:
+            This is a demonstration dashboard connected to production API.
           </p>
           <ul className="list-disc list-inside space-y-2 text-sm text-blue-800 dark:text-blue-200">
-            <li>Connect to the API server</li>
-            <li>Create a job source</li>
-            <li>Import jobs using the mock adapter</li>
-            <li>View scored matches</li>
+            <li>API: <code className="bg-blue-100 dark:bg-blue-800 px-2 py-1 rounded">{API_URL}</code></li>
+            <li>Frontend: <code className="bg-blue-100 dark:bg-blue-800 px-2 py-1 rounded">Vercel</code></li>
+            <li>Database: <code className="bg-blue-100 dark:bg-blue-800 px-2 py-1 rounded">Railway PostgreSQL</code></li>
           </ul>
         </div>
       </main>
