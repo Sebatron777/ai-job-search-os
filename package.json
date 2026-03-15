@@ -23,7 +23,8 @@
     "db:migrate:deploy": "pnpm --filter @ai-job-search/api db:migrate:deploy",
     "start": "node apps/api/dist/main.js",
     "start:api": "node apps/api/dist/main.js",
-    "start:prod": "pnpm db:migrate:deploy && node apps/api/dist/main.js"
+    "start:prod": "pnpm db:migrate:deploy && node apps/api/dist/main.js",
+    "create-workspace": "pnpm --filter @ai-job-search/api create-workspace"
   },
   "devDependencies": {
     "concurrently": "^8.2.2",
