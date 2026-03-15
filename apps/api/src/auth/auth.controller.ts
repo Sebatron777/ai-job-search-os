@@ -1,15 +1,30 @@
 import { Controller, Post, Body, HttpCode, HttpStatus } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiResponse } from "@nestjs/swagger";
+import { IsEmail, IsNotEmpty, IsOptional, IsString, MinLength } from "class-validator";
 import { AuthService, RegisterDto, LoginDto } from "./auth.service";
 
 class RegisterRequest {
+  @IsEmail()
+  @IsNotEmpty()
   email!: string;
+
+  @IsString()
+  @MinLength(6)
+  @IsNotEmpty()
   password!: string;
+
+  @IsString()
+  @IsOptional()
   name?: string;
 }
 
 class LoginRequest {
+  @IsEmail()
+  @IsNotEmpty()
   email!: string;
+
+  @IsString()
+  @IsNotEmpty()
   password!: string;
 }
 
