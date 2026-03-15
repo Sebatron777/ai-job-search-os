@@ -96,6 +96,8 @@ export default function JobsPage() {
     setImporting(true);
 
     try {
+      console.log('Step 1: Creating job source...');
+      
       // Create mock source
       const sourceResponse = await fetch(`${API_URL}/sources`, {
         method: 'POST',
@@ -111,14 +113,19 @@ export default function JobsPage() {
         }),
       });
 
+      console.log('Source response status:', sourceResponse.status);
+      
       if (!sourceResponse.ok) {
         const errorData = await sourceResponse.json();
+        console.error('Source error:', errorData);
         throw new Error(errorData.message || 'Failed to create job source');
       }
 
       const sourceData = await sourceResponse.json();
+      console.log('Source created:', sourceData);
 
       // Trigger ingestion
+      console.log('Step 2: Triggering ingestion...');
       const ingestResponse = await fetch(`${API_URL}/sources/${sourceData.id}/ingest?limit=10&dryRun=false`, {
         method: 'POST',
         headers: {
@@ -126,21 +133,26 @@ export default function JobsPage() {
         },
       });
 
+      console.log('Ingest response status:', ingestResponse.status);
+
       if (!ingestResponse.ok) {
         const errorData = await ingestResponse.json();
+        console.error('Ingest error:', errorData);
         throw new Error(errorData.message || 'Failed to start import');
       }
 
       // Wait a bit for jobs to be imported
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      console.log('Step 3: Waiting for jobs...');
+      await new Promise(resolve => setTimeout(resolve, 3000));
       
       // Refresh jobs list
+      console.log('Step 4: Refreshing jobs...');
       await fetchJobs(token);
       
       alert('✅ Successfully imported jobs!');
     } catch (error) {
-      console.error('Error importing jobs:', error);
-      alert('❌ Failed to import jobs. Please try again.');
+      console.error('Full error:', error);
+      alert('❌ Failed to import jobs: ' + (error instanceof Error ? error.message : 'Unknown error'));
     } finally {
       setImporting(false);
     }
