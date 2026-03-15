@@ -96,9 +96,28 @@ export default function JobsPage() {
     setImporting(true);
 
     try {
-      console.log('Step 1: Creating job source...');
-      
-      // Create mock source
+      // Step 1: Get workspace
+      console.log('Step 1: Getting workspace...');
+      const workspaceResponse = await fetch(`${API_URL}/workspaces`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!workspaceResponse.ok) {
+        throw new Error('Failed to get workspaces');
+      }
+
+      const workspaces = await workspaceResponse.json();
+      if (!workspaces || workspaces.length === 0) {
+        throw new Error('No workspace found. Please create a workspace first.');
+      }
+
+      const workspaceId = workspaces[0].id;
+      console.log('Workspace ID:', workspaceId);
+
+      // Step 2: Create job source
+      console.log('Step 2: Creating job source...');
       const sourceResponse = await fetch(`${API_URL}/sources`, {
         method: 'POST',
         headers: {
@@ -108,6 +127,7 @@ export default function JobsPage() {
         body: JSON.stringify({
           name: 'Mock Jobs',
           type: 'mock',
+          workspaceId: workspaceId,
           isActive: true,
           config: {},
         }),
@@ -124,8 +144,8 @@ export default function JobsPage() {
       const sourceData = await sourceResponse.json();
       console.log('Source created:', sourceData);
 
-      // Trigger ingestion
-      console.log('Step 2: Triggering ingestion...');
+      // Step 3: Trigger ingestion
+      console.log('Step 3: Triggering ingestion...');
       const ingestResponse = await fetch(`${API_URL}/sources/${sourceData.id}/ingest?limit=10&dryRun=false`, {
         method: 'POST',
         headers: {
@@ -141,12 +161,12 @@ export default function JobsPage() {
         throw new Error(errorData.message || 'Failed to start import');
       }
 
-      // Wait a bit for jobs to be imported
-      console.log('Step 3: Waiting for jobs...');
+      // Step 4: Wait for jobs to be imported
+      console.log('Step 4: Waiting for jobs...');
       await new Promise(resolve => setTimeout(resolve, 3000));
       
-      // Refresh jobs list
-      console.log('Step 4: Refreshing jobs...');
+      // Step 5: Refresh jobs list
+      console.log('Step 5: Refreshing jobs...');
       await fetchJobs(token);
       
       alert('✅ Successfully imported jobs!');
