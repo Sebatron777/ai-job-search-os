@@ -21,6 +21,9 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
+      console.log('Logging in with:', formData.email);
+      console.log('API URL:', API_URL);
+      
       const response = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: {
@@ -29,7 +32,9 @@ export default function LoginPage() {
         body: JSON.stringify(formData),
       });
 
+      console.log('Response status:', response.status);
       const data = await response.json();
+      console.log('Response data:', data);
 
       if (!response.ok) {
         throw new Error(data.message || 'Login failed');
@@ -38,10 +43,12 @@ export default function LoginPage() {
       // Сохраняем токен
       localStorage.setItem('token', data.accessToken);
       localStorage.setItem('refreshToken', data.refreshToken);
+      console.log('Tokens saved, redirecting...');
 
       // Редирект на dashboard
       router.push('/dashboard');
     } catch (err) {
+      console.error('Login error:', err);
       setError(err instanceof Error ? err.message : 'Login failed');
     } finally {
       setLoading(false);
