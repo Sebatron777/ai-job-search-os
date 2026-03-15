@@ -20,6 +20,12 @@ export default function ProfilePage() {
   const [formData, setFormData] = useState({ name: '', email: '' });
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
+  const [stats, setStats] = useState({
+    jobs: 0,
+    applications: 0,
+    interviews: 0,
+    offers: 0,
+  });
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -46,7 +52,33 @@ export default function ProfilePage() {
     } finally {
       setLoading(false);
     }
+    
+    // Fetch stats
+    fetchStats(token);
   }, [router]);
+
+  const fetchStats = async (token: string) => {
+    try {
+      const workspaceId = '16e05d35-78d8-4f3d-b5d2-c2a8bb90432f';
+      
+      // Fetch jobs count
+      const response = await fetch(`${API_URL}/jobs?workspaceId=${workspaceId}&status=all`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      
+      if (response.ok) {
+        const jobs = await response.json();
+        setStats({
+          jobs: jobs.length || 0,
+          applications: 0,
+          interviews: 0,
+          offers: 0,
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+    }
+  };
 
   const handleSave = async () => {
     setSaving(true);
@@ -193,10 +225,10 @@ export default function ProfilePage() {
             Account Statistics
           </h3>
           <div className="grid grid-cols-2 gap-4">
-            <StatBox label="Jobs Imported" value="15" />
-            <StatBox label="Applications" value="0" />
-            <StatBox label="Interviews" value="0" />
-            <StatBox label="Offers" value="0" />
+            <StatBox label="Jobs Imported" value={stats.jobs.toString()} />
+            <StatBox label="Applications" value={stats.applications.toString()} />
+            <StatBox label="Interviews" value={stats.interviews.toString()} />
+            <StatBox label="Offers" value={stats.offers.toString()} />
           </div>
         </div>
 
