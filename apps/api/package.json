@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "nest start --watch",
-    "build": "nest build",
+    "build": "prisma generate && nest build",
     "start": "pnpm db:migrate:deploy && node dist/main.js",
     "start:prod": "pnpm db:migrate:deploy && node dist/main.js",
     "lint": "eslint src",
