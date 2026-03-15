@@ -182,11 +182,13 @@ export default function DashboardPage() {
                   },
                   body: JSON.stringify({
                     name: 'My Workspace',
+                    slug: `workspace-${Date.now()}`,
                   }),
                 });
                 
                 if (response.ok) {
                   alert('✅ Workspace created! Refresh the page.');
+                  window.location.reload();
                 } else {
                   const error = await response.json();
                   alert('❌ Error: ' + (error.message || 'Failed to create workspace'));
