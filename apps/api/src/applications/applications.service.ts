@@ -3,8 +3,11 @@ import { PrismaService } from "../database/prisma.service";
 
 export interface CreateApplicationDto {
   jobId: string;
-  candidateProfileId: string;
+  candidateProfileId?: string;
   workspaceId: string;
+  status?: string;
+  coverLetter?: string;
+  customAnswers?: Record<string, any>;
 }
 
 @Injectable()
@@ -53,9 +56,20 @@ export class ApplicationsService {
     const application = await this.prisma.application.create({
       data: {
         workspaceId: dto.workspaceId,
-        candidateProfileId: dto.candidateProfileId,
+        candidateProfileId: dto.candidateProfileId || null,
         jobId: dto.jobId,
-        status: "draft",
+        status: dto.status || "draft",
+        coverLetter: dto.coverLetter || null,
+        customAnswers: dto.customAnswers || null,
+      },
+      include: {
+        job: {
+          select: {
+            id: true,
+            title: true,
+            company: true,
+          },
+        },
       },
     });
 
@@ -95,5 +109,12 @@ export class ApplicationsService {
 
   async reject(id: string, reason: string) {
     return this.updateStatus(id, "draft", `Rejected: ${reason}`);
+  }
+
+  async delete(id: string) {
+    await this.prisma.application.delete({
+      where: { id },
+    });
+    return { success: true };
   }
 }

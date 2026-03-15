@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Put,
+  Delete,
   Body,
   Param,
   Query,
@@ -65,5 +66,13 @@ export class ApplicationsController {
     @Body() dto: { status: string; reason?: string }
   ) {
     return this.applicationsService.updateStatus(id, dto.status, dto.reason);
+  }
+
+  @Delete(":id")
+  @ApiOperation({ summary: "Delete application" })
+  @ApiResponse({ status: 200 })
+  async delete(@Param("id") id: string) {
+    await this.applicationsService.delete(id);
+    return { success: true };
   }
 }
