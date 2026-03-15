@@ -26,6 +26,7 @@ export default function JobsPage() {
   const router = useRouter();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
+  const [importing, setImporting] = useState(false);
   const [filter, setFilter] = useState({
     locationType: '',
     jobType: '',
@@ -72,8 +73,10 @@ export default function JobsPage() {
     const token = localStorage.getItem('token');
     if (!token) return;
 
+    setImporting(true);
+
     try {
-      // Create mock source if not exists
+      // Create mock source
       const sourceResponse = await fetch(`${API_URL}/job-sources`, {
         method: 'POST',
         headers: {
@@ -88,21 +91,36 @@ export default function JobsPage() {
         }),
       });
 
+      if (!sourceResponse.ok) {
+        throw new Error('Failed to create job source');
+      }
+
       const sourceData = await sourceResponse.json();
 
       // Trigger ingestion
-      await fetch(`${API_URL}/job-sources/${sourceData.id}/ingest`, {
+      const ingestResponse = await fetch(`${API_URL}/job-sources/${sourceData.id}/ingest`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
-      alert('Job import started! Check back in a few seconds.');
-      setTimeout(() => fetchJobs(token), 3000);
+      if (!ingestResponse.ok) {
+        throw new Error('Failed to start import');
+      }
+
+      // Wait a bit for jobs to be imported
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Refresh jobs list
+      await fetchJobs(token);
+      
+      alert('✅ Successfully imported jobs!');
     } catch (error) {
       console.error('Error importing jobs:', error);
-      alert('Failed to import jobs');
+      alert('❌ Failed to import jobs. Please try again.');
+    } finally {
+      setImporting(false);
     }
   };
 
@@ -128,9 +146,10 @@ export default function JobsPage() {
             </div>
             <button
               onClick={handleImportJobs}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium"
+              disabled={importing}
+              className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
             >
-              📥 Import Jobs
+              {importing ? '⏳ Importing...' : '📥 Import Jobs'}
             </button>
           </div>
         </div>
@@ -206,9 +225,10 @@ export default function JobsPage() {
             {jobs.length === 0 && (
               <button
                 onClick={handleImportJobs}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md font-medium"
+                disabled={importing}
+                className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-6 py-2 rounded-md font-medium transition-colors"
               >
-                Import Jobs
+                {importing ? '⏳ Importing...' : 'Import Jobs'}
               </button>
             )}
           </div>
