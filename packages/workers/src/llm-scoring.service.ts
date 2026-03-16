@@ -30,6 +30,13 @@ export interface LLMAnalysisResult {
   confidence: number;
   /** Рекомендуемый режим отклика */
   recommendedApplyMode?: "manual" | "assisted" | "auto";
+  /** Токены и стоимость */
+  usage?: {
+    promptTokens: number;
+    completionTokens: number;
+    totalTokens: number;
+    estimatedCost?: number;
+  };
 }
 
 /**
@@ -112,6 +119,7 @@ export interface LLMResponse {
     promptTokens: number;
     completionTokens: number;
     totalTokens: number;
+    model?: string;
   };
 }
 
@@ -171,12 +179,48 @@ export class LLMScoringService {
       });
 
       // Парсим ответ
-      return this.parseLLMResponse(response.content, job, candidate);
+      const result = this.parseLLMResponse(response.content, job, candidate);
+
+      // Добавляем инфо об использовании
+      if (response.usage) {
+        result.usage = {
+          ...response.usage,
+          estimatedCost: this.calculateUsageCost(response.usage),
+        };
+      }
+
+      return result;
     } catch (error) {
       console.error("LLM analysis failed:", error);
       // Возвращаем дефолтный анализ при ошибке
       return this.getDefaultAnalysis(job, candidate);
     }
+  }
+
+  /**
+   * Вычислить примерную стоимость запроса (в USD)
+   */
+  private calculateUsageCost(usage: { promptTokens: number; completionTokens: number; model?: string }): number {
+    const model = usage.model || "";
+    
+    // Цены за 1M токенов (примерные)
+    const pricing: Record<string, { prompt: number; completion: number }> = {
+      "claude-3-5-sonnet-20240620": { prompt: 3, completion: 15 },
+      "claude-3-5-sonnet-20241022": { prompt: 3, completion: 15 },
+      "claude-3-opus-20240229": { prompt: 15, completion: 75 },
+      "claude-3-haiku-20240307": { prompt: 0.25, completion: 1.25 },
+      "gpt-4o": { prompt: 5, completion: 15 },
+      "gpt-4o-mini": { prompt: 0.15, completion: 0.60 },
+    };
+
+    // Находим наиболее подходящую цену
+    const modelKey = Object.keys(pricing).find(k => model.includes(k)) || "claude-3-5-sonnet-20241022";
+    const prices = pricing[modelKey];
+
+    const promptCost = (usage.promptTokens / 1_000_000) * prices.prompt;
+    const completionCost = (usage.completionTokens / 1_000_000) * prices.completion;
+
+    return Number((promptCost + completionCost).toFixed(6));
   }
 
   /**
@@ -202,17 +246,6 @@ export class LLMScoringService {
     )) {
       hardFails.push("excluded_keyword");
     }
-
-    // Проверка salary (если указан минимум у кандидата)
-    // TODO: Получить из job preferences
-    // if (job.salaryMax && job.salaryMax < candidateMinSalary) {
-    //   hardFails.push("salary_below_minimum");
-    // }
-
-    // Проверка relocation
-    // if (job.locationType === "onsite" && !candidate.relocationWilling) {
-    //   hardFails.push("relocation_required");
-    // }
 
     return hardFails;
   }

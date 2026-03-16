@@ -2,7 +2,7 @@
  * Communications domain types (Email monitoring)
  */
 
-import type { ApplicationId } from "./applications";
+import type { ApplicationId, ApplicationStatus } from "./applications";
 import type { UserId } from "./domain";
 
 export type MailboxConnectionId = string;
@@ -25,16 +25,16 @@ export interface MailboxConnection {
   
   // Connection status
   status: "connected" | "disconnected" | "error" | "token_expired";
-  errorMessage?: string;
+  errorMessage?: string | undefined;
   
   // Sync state
   lastSyncedAt: Date | null;
-  syncCursor?: string; // for incremental sync
+  syncCursor?: string | undefined; // for incremental sync
   
   // Settings
   syncEnabled: boolean;
   syncIntervalMinutes: number;
-  labelFilters?: string[]; // Gmail labels to monitor
+  labelFilters?: string[] | undefined; // Gmail labels to monitor
   
   createdAt: Date;
   updatedAt: Date;
@@ -56,7 +56,7 @@ export interface EmailThreadRef {
   // Participants
   fromAddress: string;
   toAddresses: string[];
-  ccAddresses?: string[];
+  ccAddresses?: string[] | undefined;
   
   // Content
   subject: string;
@@ -65,7 +65,7 @@ export interface EmailThreadRef {
   // Classification
   classification: EmailClassification;
   classificationConfidence: number;
-  classificationModel?: string;
+  classificationModel?: string | undefined;
   
   // Status
   isRead: boolean;
@@ -107,11 +107,11 @@ export interface ReplyEvent {
   
   // Classification
   classification: EmailClassification;
-  summary?: string; // AI-generated summary
-  suggestedNextAction?: string;
+  summary?: string | undefined; // AI-generated summary
+  suggestedNextAction?: string | undefined;
   
   // Pipeline impact
-  pipelineStatusUpdate?: ApplicationStatus;
+  pipelineStatusUpdate?: ApplicationStatus | undefined;
   pipelineUpdated: boolean;
   
   // Metadata

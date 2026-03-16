@@ -2,6 +2,8 @@ import { NestFactory } from "@nestjs/core";
 import { ValidationPipe } from "@nestjs/common";
 import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
 import { ConfigService } from "@nestjs/config";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
 import { AppModule } from "./app.module";
 import { setupObservability } from "./observability";
 
@@ -9,6 +11,20 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     logger: ["error", "warn", "log", "debug", "verbose"],
   });
+
+  // Security Headers
+  app.use(helmet());
+
+  // Rate Limiting
+  app.use(
+    rateLimit({
+      windowMs: 15 * 60 * 1000, // 15 minutes
+      max: 100, // limit each IP to 100 requests per windowMs
+      message: "Too many requests from this IP, please try again after 15 minutes",
+      standardHeaders: true,
+      legacyHeaders: false,
+    })
+  );
 
   const configService = app.get(ConfigService);
 

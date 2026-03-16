@@ -16,4 +16,18 @@ export class IntegrationsController {
   async getMailboxes(@Query("workspaceId") workspaceId: string) {
     return this.integrationsService.getMailboxConnections(workspaceId);
   }
+
+  @Get("gmail/connect")
+  async connectGmail(@Query("userId") userId: string) {
+    const url = await this.integrationsService.getGmailConnectUrl(userId);
+    return { url };
+  }
+
+  @Get("gmail/callback")
+  async handleGmailCallback(
+    @Query("code") code: string,
+    @Query("state") state: string
+  ) {
+    return this.integrationsService.handleGmailCallback(code, state);
+  }
 }

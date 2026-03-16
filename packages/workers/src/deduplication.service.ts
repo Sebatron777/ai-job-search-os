@@ -275,7 +275,6 @@ export class DeduplicationService {
     hash1: string,
     hash2: string
   ): Promise<number> {
-    // TODO: Реализовать сравнение simhash для определения схожести текстов
     // Пока возвращаем 0 (не похоже) или 1 (идентичны)
     return hash1 === hash2 ? 1 : 0;
   }

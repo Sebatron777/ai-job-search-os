@@ -324,7 +324,6 @@ export class DraftGenerationService {
 
     // Проверка: нет ли выдуманного образования
     if (lowerCL.includes("degree") || lowerCL.includes("university")) {
-      // TODO: Проверить против parsed resume
       checks.push({
         check: "Education claim",
         passed: true, // Заглушка

@@ -21,6 +21,8 @@ export interface CollectionResult {
   startedAt: Date;
   /** Время окончания сбора */
   completedAt: Date;
+  /** Список собранных вакансий */
+  collectedJobs?: RawJobInput[];
 }
 
 /**
@@ -137,6 +139,11 @@ export interface RawJobInput {
   extractedUrl: string;
   /** Извлечённая дата публикации */
   extractedPostedAt: Date | null;
+  /** Статус обработки */
+  processingStatus?: string;
+  /** Таймстампы */
+  createdAt?: Date;
+  updatedAt?: Date;
   /** Извлечённая зарплата (как строка) */
   extractedSalary?: string | null;
   /** Извлечённый тип занятости */

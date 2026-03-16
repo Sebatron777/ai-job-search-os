@@ -2,7 +2,7 @@
  * Jobs domain types
  */
 
-import type { UUID, Timestamps } from "./domain";
+import type { UUID, Timestamps, JobType, WorkMode, SeniorityLevel } from "./domain";
 
 export type JobId = string;
 export type JobSourceId = string;
@@ -152,26 +152,6 @@ export type JobStatus =
   | "shortlisted"
   | "rejected";
 
-export type JobType = 
-  | "full_time"
-  | "part_time"
-  | "contract"
-  | "internship"
-  | "apprenticeship";
-
-export type WorkMode = "remote" | "hybrid" | "onsite";
-
-export type SeniorityLevel =
-  | "entry"
-  | "junior"
-  | "mid"
-  | "senior"
-  | "lead"
-  | "principal"
-  | "staff"
-  | "director"
-  | "vp"
-  | "c_level";
 
 export interface Job {
   id: JobId;

@@ -8,12 +8,14 @@
 import type { Job, CandidateProfile, JobPreference, MatchScore } from "@ai-job-search/types";
 import {
   DeterministicScoringService,
-  DeterministicScoreResult,
-  ScoringConfig,
   DEFAULT_WEIGHTS,
 } from "./deterministic-scoring.service";
-import {
-  LLMScoringService,
+import type {
+  DeterministicScoreResult,
+  ScoringConfig,
+} from "./deterministic-scoring.service";
+import { LLMScoringService } from "./llm-scoring.service";
+import type {
   LLMAnalysisResult,
   LLMClient,
   LLMScoringConfig,
@@ -34,7 +36,7 @@ export interface MatchingResult {
   /** Детерминированный скор по компонентам */
   deterministicResult: DeterministicScoreResult;
   /** LLM анализ */
-  llmAnalysis?: LLMAnalysisResult;
+  llmAnalysis?: LLMAnalysisResult | undefined;
   /** Hard fail причины */
   hardFailReasons: string[];
   /** Skill gaps */
@@ -44,7 +46,7 @@ export interface MatchingResult {
   /** Рекомендация */
   recommendation: string;
   /** Рекомендуемый режим отклика */
-  recommendedApplyMode?: "manual" | "assisted" | "auto";
+  recommendedApplyMode?: "manual" | "assisted" | "auto" | undefined;
 }
 
 /**
@@ -147,7 +149,7 @@ export class MatchingService {
       totalScore,
       confidence,
       deterministicResult,
-      llmAnalysis,
+      llmAnalysis, // Теперь содержит usage и estimatedCost
       hardFailReasons,
       skillGaps: deterministicResult.skillGaps,
       riskFlags,
@@ -298,9 +300,8 @@ export class MatchingService {
 /**
  * Создать MatchScore для сохранения в БД
  */
-export function createMatchScoreEntity(
-  result: MatchingResult,
-  workspaceId: string
+export function createMatchScore(
+  _workspaceId: string, result: MatchingResult
 ): Partial<MatchScore> {
   return {
     jobId: result.jobId,
@@ -316,7 +317,7 @@ export function createMatchScoreEntity(
     llmReasoning: result.llmAnalysis?.reasoning,
     llmRecommendation: result.llmAnalysis?.recommendation as any,
     hasHardFail: result.hardFailReasons.length > 0,
-    hardFailReasons: result.hardFailReasons,
+    hardFailReasons: result.hardFailReasons as any[],
     skillGaps: result.skillGaps,
     riskFlags: result.riskFlags,
     recommendation: result.recommendation as any,

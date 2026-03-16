@@ -18,5 +18,31 @@ export class JobsService {
     });
   }
 
-  // TODO: Implement job filtering, scoring integration
+  async create(workspaceId: string, data: any) {
+    // Get organizationId via workspace
+    const workspace = await this.prisma.workspace.findUnique({
+      where: { id: workspaceId },
+      select: { organizationId: true },
+    });
+
+    if (!workspace?.organizationId) {
+      throw new Error("Workspace not linked to an organization");
+    }
+
+    // Create job and increment count atomatically
+    const [job] = await this.prisma.$transaction([
+      this.prisma.job.create({
+        data: {
+          ...data,
+          workspaceId,
+        },
+      }),
+      this.prisma.organization.update({
+        where: { id: workspace.organizationId },
+        data: { currentMonthJobsCount: { increment: 1 } },
+      }),
+    ]);
+
+    return job;
+  }
 }

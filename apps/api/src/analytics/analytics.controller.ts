@@ -11,4 +11,19 @@ export class AnalyticsController {
   async getFunnel(@Query("workspaceId") workspaceId: string) {
     return this.analyticsService.getFunnelMetrics(workspaceId);
   }
+
+  @Get("source-metrics")
+  async getSourceMetrics(@Query("workspaceId") workspaceId: string) {
+    return this.analyticsService.getSourceMetrics(workspaceId);
+  }
+
+  @Get("time-to-hire")
+  async getTimeToHire(@Query("workspaceId") workspaceId: string) {
+    return this.analyticsService.getTimeToHire(workspaceId);
+  }
+
+  @Get("trends")
+  async getTrends(@Query("workspaceId") workspaceId: string) {
+    return this.analyticsService.getWeeklyTrends(workspaceId);
+  }
 }

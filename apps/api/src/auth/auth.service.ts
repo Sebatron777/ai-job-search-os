@@ -2,6 +2,8 @@ import { Injectable, UnauthorizedException, ConflictException } from "@nestjs/co
 import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
 import { PrismaService } from "../database/prisma.service";
+import { VerificationService } from "../users/verification.service";
+import { BillingService } from "../billing/billing.service";
 import { compare, hash } from "bcrypt";
 
 export interface RegisterDto {
@@ -25,7 +27,9 @@ export class AuthService {
   constructor(
     private prisma: PrismaService,
     private jwt: JwtService,
-    private config: ConfigService
+    private config: ConfigService,
+    private verificationService: VerificationService,
+    private billingService: BillingService
   ) {}
 
   /**
@@ -50,6 +54,24 @@ export class AuthService {
         email: dto.email.toLowerCase(),
         name: dto.name,
         passwordHash,
+        emailVerified: false, // Explicitly set
+      },
+    });
+
+    // Send verification email
+    await this.verificationService.sendVerificationEmail(user.id, user.email);
+
+    // Create default Organization
+    const organization = await this.prisma.organization.create({
+      data: {
+        name: `${dto.name || dto.email.split("@")[0]}'s Org`,
+        slug: `org-${user.id.slice(0, 8)}`,
+        memberships: {
+          create: {
+            userId: user.id,
+            role: "OWNER",
+          },
+        },
       },
     });
 
@@ -59,6 +81,7 @@ export class AuthService {
         name: `${dto.name || dto.email.split("@")[0]}'s Workspace`,
         slug: `ws-${user.id.slice(0, 8)}`,
         ownerId: user.id,
+        organizationId: organization.id,
         settings: {
           defaultApprovalMode: "manual",
           autoSyncEnabled: false,
@@ -68,7 +91,7 @@ export class AuthService {
       },
     });
 
-    // Create membership
+    // Create workspace membership
     await this.prisma.membership.create({
       data: {
         userId: user.id,
@@ -77,6 +100,9 @@ export class AuthService {
         acceptedAt: new Date(),
       },
     });
+
+    // Assign Free Plan
+    await this.billingService.subscribeToDefaultPlan(organization.id);
 
     // Generate tokens
     return this.generateTokens(user.id);
@@ -168,5 +194,33 @@ export class AuthService {
     } catch {
       throw new UnauthorizedException("Invalid token");
     }
+  }
+
+  /**
+   * Verify email by token
+   */
+  async verifyEmail(token: string) {
+    return this.verificationService.verifyEmail(token);
+  }
+
+  /**
+   * Resend verification email
+   */
+  async resendVerification(email: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { email: email.toLowerCase() },
+    });
+
+    if (!user) {
+      // Don't leak user existence? Actually for resend it's fine.
+      return { success: true };
+    }
+
+    if (user.emailVerified) {
+      return { success: true, message: "Email already verified" };
+    }
+
+    await this.verificationService.sendVerificationEmail(user.id, user.email);
+    return { success: true };
   }
 }

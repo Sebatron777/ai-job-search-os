@@ -35,11 +35,15 @@ export interface AutoApplyCheckResult {
  */
 export interface ApprovalCheckResult {
   /** Статус проверки */
-  status: "approved" | "rejected" | "pending" | "requires_review";
+  status: "approved" | "rejected" | "pending" | "requires_review" | "revised";
   /** Причина */
   reason?: string;
   /** Следующий шаг */
   nextAction: string;
+  /** Summary */
+  summary?: string;
+  /** Suggested next action */
+  suggestedNextAction?: string;
 }
 
 /**
@@ -132,7 +136,7 @@ export class ApprovalService {
     }
 
     // Проверка: domain whitelist
-    const domain = this.extractDomain(draft.job?.canonicalUrl || "");
+    const domain = this.extractDomain((draft as any).job?.canonicalUrl || "");
     if (domain && !this.isWhitelisted(domain)) {
       return {
         canAutoApply: false,
@@ -184,16 +188,19 @@ export class ApprovalService {
     // Auto-approval если возможно
     const shouldAutoApprove = autoCheckResult?.canAutoApply && !autoCheckResult.requiresManualApproval;
 
-    return {
+    const result: Partial<ApprovalRequest> = {
       applicationDraftId: draft.id,
-      requestedBy,
+      requestedBy: requestedBy as any,
       approvalMode,
-      decision: shouldAutoApprove ? "approved" : undefined,
-      autoApprovalReason: shouldAutoApprove
-        ? `Auto-approved: score=${draft.validationStatus}, mode=${approvalMode}`
-        : undefined,
       expiresAt: this.calculateExpiryDate(approvalMode),
     };
+
+    if (shouldAutoApprove) {
+      result.decision = "approved";
+      result.autoApprovalReason = `Auto-approved: status=${draft.validationStatus}, mode=${approvalMode}`;
+    }
+
+    return result;
   }
 
   /**
@@ -211,6 +218,8 @@ export class ApprovalService {
         status: request.decision,
         reason: "Already decided",
         nextAction: "Proceed with application",
+        summary: "Approval request already decided",
+        suggestedNextAction: "Check application status",
       };
     }
 

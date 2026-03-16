@@ -60,6 +60,7 @@ export class AnthropicClient implements LLMClient {
           promptTokens: data.usage?.input_tokens || 0,
           completionTokens: data.usage?.output_tokens || 0,
           totalTokens: (data.usage?.input_tokens || 0) + (data.usage?.output_tokens || 0),
+          model: this.model,
         },
       };
     } catch (error) {
@@ -155,6 +156,7 @@ export class OpenAIClient implements LLMClient {
           promptTokens: data.usage?.prompt_tokens || 0,
           completionTokens: data.usage?.completion_tokens || 0,
           totalTokens: data.usage?.total_tokens || 0,
+          model: this.model,
         },
       };
     } catch (error) {

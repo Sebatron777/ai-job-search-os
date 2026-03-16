@@ -27,7 +27,11 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    "exactOptionalPropertyTypes": true
+    "exactOptionalPropertyTypes": true,
+    "baseUrl": "../../",
+    "paths": {
+      "@ai-job-search/*": ["packages/*/src/index.ts"]
+    }
   },
   "exclude": ["node_modules", "dist", "build", ".next", "coverage"]
 }

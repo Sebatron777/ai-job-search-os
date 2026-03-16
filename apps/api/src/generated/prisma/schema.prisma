@@ -1,0 +1,473 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// IDENTITY DOMAIN
+// ============================================================================
+
+model User {
+  id               String    @id @default(uuid())
+  email            String    @unique
+  name             String?
+  avatarUrl        String?
+  passwordHash     String?
+  refreshTokenHash String?
+  emailVerified    Boolean   @default(false)
+  lastLoginAt      DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  memberships        Membership[]
+  orgMemberships     OrganizationMembership[]
+  workspaces         Workspace[]              @relation("WorkspaceOwner")
+  profiles           CandidateProfile[]
+  verificationTokens VerificationToken[]
+  connectedAccounts  ConnectedAccount[]
+}
+
+model Organization {
+  id        String   @id @default(uuid())
+  name      String
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  workspaces   Workspace[]
+  memberships  OrganizationMembership[]
+  auditLogs    AuditLog[]
+  features     OrganizationFeature[]
+  subscription Subscription?
+
+  // Usage tracking
+  currentMonthJobsCount    Int @default(0)
+  currentMonthResumesCount Int @default(0)
+  currentMonthAppsCount    Int @default(0)
+
+  @@index([slug])
+}
+
+model Plan {
+  id           String  @id @default(uuid())
+  name         String  @unique // "FREE", "PRO", "ENTERPRISE"
+  description  String?
+  priceId      String? // Stripe Price ID
+  monthlyPrice Int     @default(0) // in cents
+  currency     String  @default("USD")
+
+  // Limits
+  maxWorkspaces   Int @default(1)
+  maxJobsPerMonth Int @default(10)
+  maxResumesCount Int @default(50)
+
+  features String[] // List of enabled feature keys
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  subscriptions Subscription[]
+}
+
+model Subscription {
+  id             String @id @default(uuid())
+  organizationId String @unique
+  planId         String
+  status         String @default("active") // "active", "past_due", "canceled", "incomplete"
+
+  stripeId          String?   @unique // Stripe Subscription ID
+  currentPeriodEnd  DateTime?
+  cancelAtPeriodEnd Boolean   @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  plan         Plan         @relation(fields: [planId], references: [id])
+}
+
+model OrganizationMembership {
+  id             String   @id @default(uuid())
+  organizationId String
+  userId         String
+  role           String   @default("MEMBER") // "OWNER", "ADMIN", "MEMBER", "RECRUITER"
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId])
+}
+
+model VerificationToken {
+  id        String   @id @default(uuid())
+  userId    String
+  token     String   @unique
+  type      String // "EMAIL_VERIFICATION" | "PASSWORD_RESET"
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([userId])
+}
+
+model ConnectedAccount {
+  id                String    @id @default(uuid())
+  userId            String
+  provider          String // "gmail", "outlook", etc.
+  providerAccountId String
+  accessToken       String
+  refreshToken      String?
+  tokenExpiresAt    DateTime?
+  scopes            String[]
+  status            String    @default("active")
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, provider, providerAccountId])
+}
+
+model Mailbox {
+  id          String    @id @default(uuid())
+  workspaceId String
+  email       String
+  provider    String
+  status      String    @default("active")
+  lastSyncAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+model Workspace {
+  id             String   @id @default(uuid())
+  name           String
+  slug           String   @unique
+  settings       Json     @default("{\"defaultApprovalMode\":\"manual\",\"autoSyncEnabled\":false,\"timezone\":\"UTC\",\"currency\":\"USD\"}")
+  ownerId        String
+  organizationId String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  owner        User               @relation("WorkspaceOwner", fields: [ownerId], references: [id])
+  organization Organization?      @relation(fields: [organizationId], references: [id])
+  memberships  Membership[]
+  sources      JobSource[]
+  jobs         Job[]
+  applications Application[]
+  profiles     CandidateProfile[]
+  drafts       ApplicationDraft[]
+  mailboxes    Mailbox[]
+
+  @@index([slug])
+  @@index([ownerId])
+}
+
+model Membership {
+  id          String    @id @default(uuid())
+  userId      String
+  workspaceId String
+  role        String    @default("MEMBER")
+  acceptedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, workspaceId])
+}
+
+// ============================================================================
+// CANDIDATE DOMAIN
+// ============================================================================
+
+model CandidateProfile {
+  id                String   @id @default(uuid())
+  userId            String
+  workspaceId       String
+  firstName         String
+  lastName          String
+  headline          String?
+  location          String?
+  yearsOfExperience Int?
+  currentTitle      String?
+  currentCompany    String?
+  email             String
+  skills            String[]
+  preferredKeywords String[]
+  excludedKeywords  String[]
+  voiceTone         String   @default("professional")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user         User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace    Workspace          @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  resumes      ResumeAsset[]
+  applications Application[]
+  matchScores  MatchScore[]
+  drafts       ApplicationDraft[]
+  preferences  JobPreference?
+
+  @@unique([userId, workspaceId])
+}
+
+model JobPreference {
+  id                 String   @id @default(uuid())
+  candidateProfileId String   @unique
+  jobTypes           String[]
+  workModes          String[]
+  preferredLocations Json     @default("[]")
+  remoteOnly         Boolean  @default(false)
+  relocationWilling  Boolean  @default(false)
+  minSalary          Int?
+  maxSalary          Int?
+  salaryCurrency     String   @default("USD")
+  salaryPeriod       String   @default("yearly")
+  seniorityLevels    String[]
+  industries         String[]
+  targetCompanies    String[]
+  excludedCompanies  String[]
+  isActive           Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  candidateProfile CandidateProfile @relation(fields: [candidateProfileId], references: [id], onDelete: Cascade)
+}
+
+model ResumeAsset {
+  id                 String   @id @default(uuid())
+  candidateProfileId String
+  name               String
+  storageKey         String
+  mimeType           String
+  sizeBytes          Int
+  isDefault          Boolean  @default(false)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  candidateProfile CandidateProfile @relation(fields: [candidateProfileId], references: [id], onDelete: Cascade)
+
+  @@index([candidateProfileId])
+}
+
+// ============================================================================
+// JOB DOMAIN
+// ============================================================================
+
+model JobSource {
+  id                   String    @id @default(uuid())
+  workspaceId          String
+  name                 String
+  type                 String
+  config               Json
+  status               String    @default("active")
+  lastCollectionAt     DateTime?
+  lastCollectionStatus String?
+  lastCollectionError  String?
+  totalJobsCollected   Int       @default(0)
+  activeJobsCount      Int       @default(0)
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  jobs      Job[]
+
+  @@index([workspaceId])
+}
+
+model Job {
+  id              String    @id @default(uuid())
+  workspaceId     String
+  sourceId        String
+  title           String
+  company         String
+  canonicalUrl    String
+  sourceUrl       String
+  description     String
+  location        String
+  locationType    String
+  isRemote        Boolean   @default(false)
+  salaryMin       Int?
+  salaryMax       Int?
+  salaryCurrency  String?
+  salaryPeriod    String?
+  jobType         String
+  seniorityLevel  String?
+  requiredSkills  String[]
+  preferredSkills String[]
+  postedAt        DateTime
+  status          String    @default("discovered")
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  deletedAt       DateTime?
+
+  workspace    Workspace          @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  source       JobSource          @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  matchScores  MatchScore[]
+  applications Application[]
+  drafts       ApplicationDraft[]
+
+  @@index([workspaceId])
+  @@index([sourceId])
+  @@index([status])
+  @@index([postedAt])
+}
+
+// ============================================================================
+// MATCHING DOMAIN
+// ============================================================================
+
+model MatchScore {
+  id                   String   @id @default(uuid())
+  jobId                String
+  candidateProfileId   String
+  totalScore           Int
+  confidence           Float
+  titleScore           Int
+  skillScore           Int
+  seniorityScore       Int
+  workModeScore        Int
+  locationScore        Int
+  salaryScore          Int
+  recommendation       String
+  recommendedApplyMode String?
+  skillGaps            Json     @default("[]")
+  hardFailReasons      String[]
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  job              Job              @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  candidateProfile CandidateProfile @relation(fields: [candidateProfileId], references: [id], onDelete: Cascade)
+  applications     Application[]
+
+  @@unique([jobId, candidateProfileId])
+  @@index([totalScore])
+}
+
+// ============================================================================
+// APPLICATIONS DOMAIN
+// ============================================================================
+
+model Application {
+  id                 String    @id @default(uuid())
+  workspaceId        String
+  candidateProfileId String?
+  jobId              String
+  matchScoreId       String?
+  status             String    @default("draft")
+  coverLetter        String?
+  introMessage       String?
+  customAnswers      Json?
+  submittedAt        DateTime?
+  submitMethod       String?
+  statusHistory      Json      @default("[]")
+  lastActivityAt     DateTime  @default(now())
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  workspace        Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  candidateProfile CandidateProfile? @relation(fields: [candidateProfileId], references: [id], onDelete: Cascade)
+  job              Job               @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  matchScore       MatchScore?       @relation(fields: [matchScoreId], references: [id])
+
+  @@index([workspaceId])
+  @@index([candidateProfileId])
+  @@index([jobId])
+  @@index([status])
+}
+
+model ApplicationDraft {
+  id                 String   @id @default(uuid())
+  workspaceId        String
+  jobId              String
+  candidateProfileId String
+  coverLetter        String
+  introMessage       String
+  customAnswers      Json
+  resumeAssetId      String
+  portfolioLinkIds   Json     @default("[]")
+  generationModel    String
+  generationVersion  String
+  validationStatus   String   @default("pending")
+  validationErrors   String[]
+  factualChecks      Json
+  approvalStatus     String   @default("pending")
+  applicationId      String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  workspace        Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  job              Job              @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  candidateProfile CandidateProfile @relation(fields: [candidateProfileId], references: [id], onDelete: Cascade)
+
+  @@index([jobId])
+  @@index([candidateProfileId])
+  @@index([approvalStatus])
+}
+
+// ============================================================================
+// SYSTEM DOMAIN
+// ============================================================================
+
+model AuditLog {
+  id             String   @id @default(uuid())
+  organizationId String?
+  workspaceId    String?
+  userId         String?
+  action         String
+  entityType     String
+  entityId       String
+  changes        Json?
+  createdAt      DateTime @default(now())
+
+  organization Organization? @relation(fields: [organizationId], references: [id])
+
+  @@index([organizationId])
+  @@index([workspaceId])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
+
+model OrganizationFeature {
+  id             String   @id @default(uuid())
+  organizationId String
+  featureName    String
+  isEnabled      Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, featureName])
+}
+
+model ScheduledTask {
+  id           String    @id @default(uuid())
+  name         String
+  type         String
+  status       String    @default("pending")
+  scheduledAt  DateTime
+  startedAt    DateTime?
+  completedAt  DateTime?
+  errorMessage String?
+  retryCount   Int       @default(0)
+  payload      Json
+  result       Json?
+  createdAt    DateTime  @default(now())
+
+  @@index([type])
+  @@index([status])
+}

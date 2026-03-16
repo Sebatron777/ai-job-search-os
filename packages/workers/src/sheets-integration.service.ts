@@ -8,86 +8,25 @@
  * - Batch operations
  */
 
+import { google } from "googleapis";
 import type { SheetTarget } from "@ai-job-search/types";
 
 /**
- * Google Sheets API client интерфейс
+ * Types for Google Sheets
+ */
+export type GoogleSpreadsheet = any;
+export type GoogleValueRange = any;
+export type GoogleBatchResponse = any;
+
+/**
+ * Interface for Sheets Client
  */
 export interface SheetsClient {
-  /**
-   * Получить данные из spreadsheet
-   */
   getSpreadsheet(spreadsheetId: string): Promise<GoogleSpreadsheet>;
-
-  /**
-   * Получить значения из range
-   */
-  getValues(
-    spreadsheetId: string,
-    range: string
-  ): Promise<GoogleValueRange>;
-
-  /**
-   * Обновить значения
-   */
-  updateValues(
-    spreadsheetId: string,
-    range: string,
-    values: any[][]
-  ): Promise<GoogleValueRange>;
-
-  /**
-   * Append значения
-   */
-  appendValues(
-    spreadsheetId: string,
-    range: string,
-    values: any[][]
-  ): Promise<GoogleValueRange>;
-
-  /**
-   * Batch update
-   */
-  batchUpdate(
-    spreadsheetId: string,
-    requests: any[]
-  ): Promise<GoogleBatchResponse>;
-}
-
-/**
- * Google Spreadsheet
- */
-export interface GoogleSpreadsheet {
-  spreadsheetId: string;
-  properties: {
-    title: string;
-    locale: string;
-    timeZone: string;
-  };
-  sheets: Array<{
-    properties: {
-      sheetId: number;
-      title: string;
-      index: number;
-    };
-  }>;
-}
-
-/**
- * Google Value Range
- */
-export interface GoogleValueRange {
-  range: string;
-  majorDimension: string;
-  values: any[][];
-}
-
-/**
- * Google Batch Response
- */
-export interface GoogleBatchResponse {
-  spreadsheetId: string;
-  replies: any[];
+  getValues(spreadsheetId: string, range: string): Promise<GoogleValueRange>;
+  updateValues(spreadsheetId: string, range: string, values: any[][]): Promise<GoogleValueRange>;
+  appendValues(spreadsheetId: string, range: string, values: any[][]): Promise<GoogleValueRange>;
+  batchUpdate(spreadsheetId: string, requests: any[]): Promise<GoogleBatchResponse>;
 }
 
 /**
@@ -130,12 +69,12 @@ export interface SheetsFieldMapping {
  * Конфигурация Sheets сервиса
  */
 export interface SheetsServiceConfig {
-  /** Client ID */
-  clientId: string;
-  /** Client secret */
-  clientSecret: string;
+  /** OAuth2 Client */
+  auth?: any;
+  /** Client ID for OAuth URL generation */
+  clientId?: string | undefined;
   /** Spreadsheet ID */
-  spreadsheetId?: string;
+  spreadsheetId?: string | undefined;
   /** Field mapping */
   fieldMapping: Partial<SheetsFieldMapping>;
 }
@@ -144,18 +83,19 @@ export interface SheetsServiceConfig {
  * Сервис интеграции с Google Sheets
  */
 export class SheetsIntegrationService {
-  private client: SheetsClient | null;
+  private sheets;
   private config: SheetsServiceConfig;
   private defaultFieldMapping: SheetsFieldMapping;
 
-  constructor(client?: SheetsClient, config?: Partial<SheetsServiceConfig>) {
-    this.client = client || null;
+  constructor(config?: Partial<SheetsServiceConfig>) {
     this.config = {
-      clientId: "",
-      clientSecret: "",
-      spreadsheetId: config?.spreadsheetId,
+      auth: config?.auth,
+      clientId: config?.clientId || undefined,
+      spreadsheetId: config?.spreadsheetId || undefined,
       fieldMapping: config?.fieldMapping || {},
     };
+
+    this.sheets = google.sheets({ version: "v4", auth: this.config.auth });
 
     this.defaultFieldMapping = {
       applications: {
@@ -193,7 +133,7 @@ export class SheetsIntegrationService {
    */
   createAuthUrl(state?: string): string {
     const params = new URLSearchParams({
-      client_id: this.config.clientId,
+      client_id: this.config.clientId || "",
       redirect_uri: "https://your-app.com/callback",
       response_type: "code",
       scope: "https://www.googleapis.com/auth/spreadsheets",
@@ -214,11 +154,11 @@ export class SheetsIntegrationService {
   async syncApplication(
     application: any,
     target: SheetTarget
-  ): Promise<SyncApplicationResult> {
-    if (!this.client || !target.spreadsheetId) {
+  ): Promise<any> {
+    if (!target.spreadsheetId) {
       return {
         success: false,
-        error: "Sheets client not initialized",
+        error: "Spreadsheet ID not provided",
       };
     }
 
@@ -227,37 +167,39 @@ export class SheetsIntegrationService {
       const range = `${sheetName}!A:I`;
 
       // Получить существующие данные
-      const existingData = await this.client.getValues(
-        target.spreadsheetId,
-        range
-      );
+      const response = await this.sheets.spreadsheets.values.get({
+        spreadsheetId: target.spreadsheetId,
+        range,
+      });
+
+      const rows = response.data.values || [];
 
       // Найти существующую строку
-      const rowIndex = this.findExistingRow(
-        existingData.values,
-        application.id
-      );
-
+      const rowIndex = this.findExistingRow(rows, application.id);
       const values = this.buildApplicationRow(application);
 
       if (rowIndex >= 0) {
         // Update existing
         const updateRange = `${sheetName}!${rowIndex + 1}:${rowIndex + 1}`;
-        await this.client.updateValues(target.spreadsheetId, updateRange, [
-          values,
-        ]);
+        await this.sheets.spreadsheets.values.update({
+          spreadsheetId: target.spreadsheetId,
+          range: updateRange,
+          valueInputOption: "RAW",
+          requestBody: { values: [values] },
+        });
       } else {
         // Append new
-        await this.client.appendValues(
-          target.spreadsheetId,
-          `${sheetName}!A:I`,
-          [values]
-        );
+        await this.sheets.spreadsheets.values.append({
+          spreadsheetId: target.spreadsheetId,
+          range: `${sheetName}!A:I`,
+          valueInputOption: "RAW",
+          requestBody: { values: [values] },
+        });
       }
 
       return {
         success: true,
-        externalRef: `row-${rowIndex >= 0 ? rowIndex : existingData.values.length + 1}`,
+        externalRef: `row-${rowIndex >= 0 ? rowIndex + 1 : rows.length + 1}`,
       };
     } catch (error) {
       return {
@@ -273,11 +215,11 @@ export class SheetsIntegrationService {
   async syncReply(
     reply: any,
     target: SheetTarget
-  ): Promise<SyncReplyResult> {
-    if (!this.client || !target.spreadsheetId) {
+  ): Promise<any> {
+    if (!target.spreadsheetId) {
       return {
         success: false,
-        error: "Sheets client not initialized",
+        error: "Spreadsheet ID not provided",
       };
     }
 
@@ -285,11 +227,12 @@ export class SheetsIntegrationService {
       const sheetName = target.repliesSheet || "Replies";
       const values = this.buildReplyRow(reply);
 
-      await this.client.appendValues(
-        target.spreadsheetId,
-        `${sheetName}!A:G`,
-        [values]
-      );
+      await this.sheets.spreadsheets.values.append({
+        spreadsheetId: target.spreadsheetId,
+        range: `${sheetName}!A:G`,
+        valueInputOption: "RAW",
+        requestBody: { values: [values] },
+      });
 
       return {
         success: true,
@@ -314,11 +257,11 @@ export class SheetsIntegrationService {
       offersCount: number;
     },
     target: SheetTarget
-  ): Promise<SyncMetricsResult> {
-    if (!this.client || !target.spreadsheetId) {
+  ): Promise<any> {
+    if (!target.spreadsheetId) {
       return {
         success: false,
-        error: "Sheets client not initialized",
+        error: "Spreadsheet ID not provided",
       };
     }
 
@@ -327,11 +270,12 @@ export class SheetsIntegrationService {
       const today = new Date().toISOString().split("T")[0];
       const values = [[today, metrics.applicationsCount, metrics.repliesCount, metrics.interviewsCount, metrics.offersCount]];
 
-      await this.client.appendValues(
-        target.spreadsheetId,
-        `${sheetName}!A:E`,
-        values
-      );
+      await this.sheets.spreadsheets.values.append({
+        spreadsheetId: target.spreadsheetId,
+        range: `${sheetName}!A:E`,
+        valueInputOption: "RAW",
+        requestBody: { values },
+      });
 
       return {
         success: true,
@@ -420,7 +364,7 @@ export class SheetsIntegrationService {
 /**
  * Результат sync приложения
  */
-export interface SyncApplicationResult {
+export interface SheetsSyncResult {
   success: boolean;
   externalRef?: string;
   error?: string;

@@ -12,6 +12,11 @@ import { JobsModule } from "./jobs/jobs.module";
 import { MatchingModule } from "./matching/matching.module";
 import { ApplicationsModule } from "./applications/applications.module";
 import { IntegrationsModule } from "./integrations/integrations.module";
+import { OrganizationsModule } from "./organizations/organizations.module";
+import { FeaturesModule } from "./features/features.module";
+import { BillingModule } from "./billing/billing.module";
+import { AuditModule } from "./audit/audit.module";
+import { MailModule } from "./mail/mail.module";
 import { AnalyticsModule } from "./analytics/analytics.module";
 import { HealthModule } from "./health/health.module";
 import { QueueModule } from "./queue/queue.module";
@@ -49,6 +54,11 @@ import { QueueModule } from "./queue/queue.module";
     MatchingModule,
     ApplicationsModule,
     IntegrationsModule,
+    OrganizationsModule,
+    FeaturesModule,
+    BillingModule,
+    AuditModule,
+    MailModule,
     AnalyticsModule,
 
     // System modules

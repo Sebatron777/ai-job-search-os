@@ -56,11 +56,11 @@ export class ApplicationsService {
     const application = await this.prisma.application.create({
       data: {
         workspaceId: dto.workspaceId,
-        candidateProfileId: dto.candidateProfileId || null,
+        candidateProfileId: dto.candidateProfileId ?? undefined,
         jobId: dto.jobId,
         status: dto.status || "draft",
-        coverLetter: dto.coverLetter || null,
-        customAnswers: dto.customAnswers || null,
+        coverLetter: dto.coverLetter ?? undefined,
+        customAnswers: (dto.customAnswers as any) ?? undefined,
       },
       include: {
         job: {

@@ -271,6 +271,58 @@ Respond in JSON:
 }
 
 // ============================================================================
+// INTERVIEW PREPARATION PROMPTS
+// ============================================================================
+
+export interface InterviewPrepPromptInput {
+  candidate: CandidateProfile;
+  job: Job;
+  interviewType?: "screening" | "technical" | "behavioral" | "system_design" | "final";
+}
+
+export function buildInterviewPrepPrompt(input: InterviewPrepPromptInput): string {
+  const { candidate, job, interviewType = "technical" } = input;
+  
+  return `Help this candidate prepare for a ${interviewType} interview for the "${job.title}" role at ${job.company}.
+  
+## Candidate Profile
+- Headline: ${candidate.headline || "N/A"}
+- Experience: ${candidate.yearsOfExperience ?? "N/A"} years
+- Top Skills: ${candidate.skills.slice(0, 10).join(", ")}
+
+## Job Details
+- Title: ${job.title}
+- Company: ${job.company}
+- Key Requirements: ${job.requiredSkills.slice(0, 5).join(", ")}
+
+## Job Description Preview
+${job.description.slice(0, 1000)}...
+
+## Task
+Based on the candidate's background and the job requirements, generate:
+1. **Top 5 likely interview questions** tailored to this specific role and candidate.
+2. **Suggested approach/talking points** for each question, highlighting relevant parts of the candidate's profile.
+3. **Specific skills or projects** the candidate should emphasize.
+4. **Questions for the candidate to ask** the interviewer.
+5. **General tips** for this specific interview type (${interviewType}).
+
+## Response Format
+Respond in valid JSON format:
+{
+  "likelyQuestions": [
+    {
+      "question": "The question text",
+      "reason": "Why this is likely asked",
+      "suggestedPoints": ["Key point to mention", "Another relevant point"]
+    }
+  ],
+  "areasToEmphasize": ["Skill/Project 1", "Skill/Project 2"],
+  "questionsToAsk": ["Good question 1", "Good question 2"],
+  "generalTips": ["Tip 1", "Tip 2"]
+}`;
+}
+
+// ============================================================================
 // PROMPT REGISTRY
 // ============================================================================
 
@@ -279,6 +331,7 @@ export const PROMPTS = {
   coverLetter: buildCoverLetterPrompt,
   introMessage: buildIntroMessagePrompt,
   emailClassification: buildEmailClassificationPrompt,
+  interviewPrep: buildInterviewPrepPrompt,
 } as const;
 
 export type PromptType = keyof typeof PROMPTS;

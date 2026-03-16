@@ -56,23 +56,23 @@ export interface JobInput {
   benefits: string[];
   location: string;
   locationType: WorkMode;
-  country?: string;
-  city?: string;
-  state?: string;
+  country?: string | undefined;
+  city?: string | undefined;
+  state?: string | undefined;
   isRemote: boolean;
-  salaryMin?: number;
-  salaryMax?: number;
-  salaryCurrency?: string;
-  salaryPeriod?: "hourly" | "monthly" | "yearly";
-  salaryDisplay?: string;
+  salaryMin?: number | undefined;
+  salaryMax?: number | undefined;
+  salaryCurrency?: string | undefined;
+  salaryPeriod?: "hourly" | "monthly" | "yearly" | undefined;
+  salaryDisplay?: string | undefined;
   jobType: JobType;
-  seniorityLevel?: SeniorityLevel;
-  industry?: string;
+  seniorityLevel?: SeniorityLevel | undefined;
+  industry?: string | undefined;
   requiredSkills: string[];
   preferredSkills: string[];
   postedAt: Date;
-  expiresAt?: Date;
-  applicationDeadline?: Date;
+  expiresAt?: Date | undefined;
+  applicationDeadline?: Date | undefined;
 }
 
 /**
@@ -100,6 +100,15 @@ export interface DescriptionParser {
   extractSkills(description: string): {
     required: string[];
     preferred: string[];
+  };
+
+  /**
+   * Распарсить всё описание
+   */
+  parseDescription(description: string): {
+    requirements: string[];
+    responsibilities: string[];
+    benefits: string[];
   };
 }
 
@@ -145,9 +154,9 @@ export interface LocationParser {
  */
 export interface LocationData {
   fullLocation: string;
-  country?: string;
-  state?: string;
-  city?: string;
+  country?: string | undefined;
+  state?: string | undefined;
+  city?: string | undefined;
   isRemote: boolean;
   locationType: WorkMode;
 }
@@ -252,14 +261,14 @@ export class NormalizationService {
         benefits,
         location: locationData.fullLocation,
         locationType: locationData.locationType,
-        country: locationData.country,
-        city: locationData.city,
-        state: locationData.state,
+        country: locationData.country || "",
+        city: locationData.city || "",
+        state: locationData.state || "",
         isRemote: locationData.isRemote,
         salaryMin: salaryData?.min,
         salaryMax: salaryData?.max,
         salaryCurrency: salaryData?.currency,
-        salaryPeriod: salaryData?.period,
+        salaryPeriod: (salaryData?.period as any) || undefined,
         salaryDisplay: salaryData?.display || rawJob.extractedSalary || undefined,
         jobType,
         seniorityLevel,

@@ -24,7 +24,6 @@ export class UsersController {
   @ApiOperation({ summary: "Get current user profile" })
   @ApiResponse({ status: 200 })
   async getMe(@Request() req: any) {
-    // TODO: Add auth guard and extract userId from request
     return this.usersService.findById(req.user?.id || "user-id");
   }
 

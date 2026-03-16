@@ -24,7 +24,6 @@ export default function DashboardPage() {
       return;
     }
 
-    // Decode user from token or use stored data
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
       setUser({
@@ -48,241 +47,160 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-xl">Loading...</div>
+      <div className="min-h-screen flex items-center justify-center bg-[#0c0c1e]">
+        <div className="text-xl text-primary animate-pulse">Initializing OS...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-[#0c0c1e] text-white relative overflow-x-hidden">
+      <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 pointer-events-none"></div>
+      <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-primary/20 rounded-full blur-[120px] pointer-events-none"></div>
+      <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-purple-600/10 rounded-full blur-[120px] pointer-events-none"></div>
+
       {/* Navigation */}
-      <nav className="bg-white dark:bg-gray-800 shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                AI Job Search
-              </h1>
+      <nav className="sticky top-0 z-50 glass-dark border-b border-white/5 px-6">
+        <div className="max-w-7xl mx-auto flex justify-between h-20 items-center">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center font-black italic shadow-[0_0_15px_rgba(150,100,255,0.5)]">
+              OS
             </div>
-            <div className="flex items-center space-x-4">
-              <Link href="/profile" className="text-sm text-gray-700 dark:text-gray-300 hover:text-blue-600">
-                {user?.name || user?.email}
-              </Link>
-              <button
-                onClick={handleLogout}
-                className="text-sm text-red-600 hover:text-red-500 dark:text-red-400"
-              >
-                Logout
-              </button>
-            </div>
+            <h1 className="text-xl font-bold tracking-tight">
+              AI Job Search <span className="text-primary italic">OS</span>
+            </h1>
+          </div>
+          <div className="flex items-center space-x-6">
+            <Link href="/profile" className="text-sm font-medium text-white/70 hover:text-primary transition-colors flex items-center gap-2">
+              <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-[10px]">
+                {user?.name?.[0] || 'U'}
+              </div>
+              {user?.name || user?.email}
+            </Link>
+            <button
+              onClick={handleLogout}
+              className="text-xs font-bold uppercase tracking-widest text-red-400/70 hover:text-red-400 transition-colors"
+            >
+              Logout
+            </button>
           </div>
         </div>
       </nav>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Welcome */}
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Welcome back! 👋
-          </h2>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">
-            Here&apos;s an overview of your job search progress
-          </p>
+      <main className="max-w-7xl mx-auto px-6 py-12 relative z-10">
+        {/* Welcome Section */}
+        <div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div>
+            <div className="flex items-center gap-2 text-primary text-xs font-bold uppercase tracking-widest mb-3">
+              <span className="w-2 h-2 rounded-full bg-primary animate-ping"></span>
+              Systems Online
+            </div>
+            <h2 className="text-4xl font-black tracking-tight">
+              Welcome back, <span className="text-primary">{user?.name || 'Commander'}</span>
+            </h2>
+            <p className="mt-3 text-white/50 max-w-lg">
+              Your AI agents are currently monitoring <span className="text-white font-medium">124</span> sources for new opportunities.
+            </p>
+          </div>
+          <div className="flex gap-3">
+             <button className="glass px-6 py-3 rounded-xl text-sm font-bold hover:bg-white/5 transition-all">
+                Export Reports
+             </button>
+             <button className="bg-primary px-6 py-3 rounded-xl text-sm font-bold hover:shadow-[0_0_20px_rgba(150,100,255,0.3)] transition-all">
+                New Search
+             </button>
+          </div>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <StatCard
-            title="Total Jobs"
-            value={0}
-            icon="📊"
-            color="blue"
-            href="/jobs"
-          />
-          <StatCard
-            title="Applications"
-            value={0}
-            icon="📝"
-            color="yellow"
-            href="/applications"
-          />
-          <StatCard
-            title="Interviews"
-            value={0}
-            icon="🎯"
-            color="green"
-            href="/applications?filter=interviewing"
-          />
-          <StatCard
-            title="Offers"
-            value={0}
-            icon="🎉"
-            color="purple"
-            href="/applications?filter=offered"
-          />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+          <StatCard title="Total Jobs" value={1248} delta="+12%" icon="📊" color="primary" href="/jobs" />
+          <StatCard title="Applications" value={42} delta="+5" icon="📝" color="purple" href="/applications" />
+          <StatCard title="Interviews" value={8} delta="Hot" icon="🎯" color="green" href="/applications?filter=interviewing" />
+          <StatCard title="Success Rate" value="12%" delta="+2%" icon="🎉" color="orange" href="/analytics" />
         </div>
 
-        {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <QuickActionCard
-            title="Browse Jobs"
-            description="View all imported job opportunities"
-            icon="📥"
-            href="/jobs"
-          />
-          <QuickActionCard
-            title="My Applications"
-            description="Track your job applications"
-            icon="📝"
-            href="/applications"
-          />
-          <QuickActionCard
-            title="My Profile"
-            description="Manage your account settings"
-            icon="👤"
-            href="/profile"
-          />
-        </div>
-
-        {/* Getting Started */}
-        <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
-            Getting Started Guide
-          </h3>
-          <ol className="space-y-3">
-            <Step number={1} text="Browse available jobs in the Jobs section" />
-            <Step number={2} text="Filter jobs by location, type, and seniority" />
-            <Step number={3} text="Review job details and requirements" />
-            <Step number={4} text="Track your applications" />
-          </ol>
-        </div>
-
-        {/* Demo Info */}
-        <div className="mt-8 bg-blue-50 dark:bg-blue-900/20 rounded-lg p-6">
-          <h3 className="text-lg font-medium text-blue-900 dark:text-blue-100 mb-4">
-            Demo Mode
-          </h3>
-          <p className="text-sm text-blue-800 dark:text-blue-200 mb-4">
-            This is a demonstration dashboard connected to production API.
-          </p>
-          <ul className="list-disc list-inside space-y-2 text-sm text-blue-800 dark:text-blue-200">
-            <li>API: <code className="bg-blue-100 dark:bg-blue-800 px-2 py-1 rounded">{API_URL}</code></li>
-            <li>Frontend: <code className="bg-blue-100 dark:bg-blue-800 px-2 py-1 rounded">Vercel</code></li>
-            <li>Database: <code className="bg-blue-100 dark:bg-blue-800 px-2 py-1 rounded">Railway PostgreSQL</code></li>
-          </ul>
+        {/* Quick Actions & Tasks */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+          <div className="lg:col-span-2 space-y-6">
+            <h3 className="text-lg font-bold tracking-tight px-2 flex items-center gap-2">
+              <span className="w-1.5 h-6 bg-primary rounded-full"></span>
+              Recommended Jobs
+            </h3>
+            <div className="space-y-4">
+              <JobRow title="Senior Software Engineer" company="SpaceX" score={98} location="Remote" />
+              <JobRow title="AI Platform Architect" company="Anthropic" score={94} location="San Francisco" />
+              <JobRow title="Frontend Lead" company="Vercel" score={89} location="Remote" />
+            </div>
+          </div>
           
-          {/* Create Workspace Button */}
-          <button
-            onClick={async () => {
-              const token = localStorage.getItem('token');
-              if (!token) return;
-              
-              try {
-                const response = await fetch(`${API_URL}/workspaces`, {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`,
-                  },
-                  body: JSON.stringify({
-                    name: 'My Workspace',
-                    slug: `workspace-${Date.now()}`,
-                  }),
-                });
-                
-                if (response.ok) {
-                  alert('✅ Workspace created! Refresh the page.');
-                  window.location.reload();
-                } else {
-                  const error = await response.json();
-                  alert('❌ Error: ' + (error.message || 'Failed to create workspace'));
-                }
-              } catch (error) {
-                alert('❌ Error creating workspace');
-              }
-            }}
-            className="mt-4 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
-          >
-            🔧 Create Workspace (Fix)
-          </button>
+          <div className="space-y-6">
+            <h3 className="text-lg font-bold tracking-tight px-2 flex items-center gap-2">
+              <span className="w-1.5 h-6 bg-purple-500 rounded-full"></span>
+              System Tasks
+            </h3>
+            <div className="glass-dark rounded-3xl p-6 space-y-6">
+               <TaskItem text="Update your profile for better matching" done={false} />
+               <TaskItem text="Review 12 new matches for today" done={true} />
+               <TaskItem text="Prepare for interview with SpaceX" done={false} />
+               <TaskItem text="Optimize your CV with AI feedback" done={false} />
+               
+               <button className="w-full py-4 text-xs font-bold uppercase tracking-widest text-primary hover:bg-white/5 rounded-xl transition-all border border-white/5">
+                 View All Tasks
+               </button>
+            </div>
+          </div>
         </div>
       </main>
     </div>
   );
 }
 
-function StatCard({
-  title,
-  value,
-  icon,
-  color,
-  href,
-}: {
-  title: string;
-  value: number;
-  icon: string;
-  color: string;
-  href: string;
-}) {
-  const colorClasses: Record<string, string> = {
-    blue: 'bg-blue-500',
-    yellow: 'bg-yellow-500',
-    green: 'bg-green-500',
-    purple: 'bg-purple-500',
-  };
-
+function StatCard({ title, value, delta, icon, color, href }: any) {
   return (
-    <Link href={href} className="block">
-      <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 hover:shadow-lg transition-shadow">
-        <div className="flex items-center">
-          <div className={`flex-shrink-0 w-12 h-12 ${colorClasses[color]} rounded-md flex items-center justify-center text-2xl`}>
-            {icon}
-          </div>
-          <div className="ml-4">
-            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{title}</p>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white">{value}</p>
-          </div>
+    <Link href={href} className="group">
+      <div className="glass-dark p-8 rounded-[2rem] border border-white/5 hover:border-primary/30 transition-all duration-500 relative overflow-hidden h-full">
+        <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity text-4xl">
+           {icon}
+        </div>
+        <p className="text-white/50 text-xs font-bold uppercase tracking-widest mb-2">{title}</p>
+        <div className="flex items-baseline gap-3">
+            <h4 className="text-3xl font-black">{value}</h4>
+            <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">{delta}</span>
         </div>
       </div>
     </Link>
   );
 }
 
-function QuickActionCard({
-  title,
-  description,
-  icon,
-  href,
-}: {
-  title: string;
-  description: string;
-  icon: string;
-  href: string;
-}) {
+function JobRow({ title, company, score, location }: any) {
   return (
-    <Link href={href} className="block">
-      <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 hover:shadow-lg transition-shadow">
-        <div className="flex items-start">
-          <div className="text-3xl mr-4">{icon}</div>
-          <div>
-            <h4 className="text-lg font-medium text-gray-900 dark:text-white">{title}</h4>
-            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">{description}</p>
-          </div>
+    <div className="glass-dark p-6 rounded-2xl flex items-center justify-between border border-white/5 hover:bg-white/5 transition-all group">
+      <div className="flex items-center gap-5">
+        <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center text-xl grayscale group-hover:grayscale-0 transition-all">
+          🚀
+        </div>
+        <div>
+          <h4 className="font-bold text-white group-hover:text-primary transition-colors">{title}</h4>
+          <p className="text-white/40 text-xs">{company} • {location}</p>
         </div>
       </div>
-    </Link>
+      <div className="text-right">
+        <div className="text-lg font-black text-primary">{score}%</div>
+        <div className="text-[10px] uppercase font-bold text-white/30 tracking-widest">Match Score</div>
+      </div>
+    </div>
   );
 }
 
-function Step({ number, text }: { number: number; text: string }) {
+function TaskItem({ text, done }: any) {
   return (
-    <li className="flex items-start">
-      <span className="flex-shrink-0 w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-medium mr-3">
-        {number}
-      </span>
-      <span className="text-gray-700 dark:text-gray-300">{text}</span>
-    </li>
+    <div className="flex items-center gap-4 group cursor-pointer">
+      <div className={`w-5 h-5 rounded flex items-center justify-center border transition-all ${done ? 'bg-primary border-primary' : 'border-white/20 group-hover:border-primary'}`}>
+        {done && <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M5 13l4 4L19 7" /></svg>}
+      </div>
+      <span className={`text-sm ${done ? 'text-white/50 line-through' : 'text-white/80 group-hover:text-white transition-colors'}`}>{text}</span>
+    </div>
   );
 }

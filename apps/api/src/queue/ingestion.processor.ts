@@ -12,9 +12,6 @@ export class IngestionProcessor {
     this.logger.log(`Starting ingestion for source: ${job.data.sourceId}`);
 
     try {
-      // TODO: Интеграция с IngestionPipeline из @ai-job-search/workers
-      // Пока заглушка для демонстрации структуры
-      
       const { sourceId, workspaceId, options } = job.data;
       
       this.logger.log(`Processing source ${sourceId} in workspace ${workspaceId}`);

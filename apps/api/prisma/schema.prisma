@@ -1,6 +1,8 @@
 generator client {
   provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
 }
+
 
 datasource db {
   provider = "postgresql"
@@ -24,8 +26,129 @@ model User {
   updatedAt       DateTime  @updatedAt
 
   memberships     Membership[]
+  orgMemberships  OrganizationMembership[]
   workspaces      Workspace[] @relation("WorkspaceOwner")
   profiles        CandidateProfile[]
+  verificationTokens VerificationToken[]
+  connectedAccounts  ConnectedAccount[]
+}
+
+model Organization {
+  id              String    @id @default(uuid())
+  name            String
+  slug            String    @unique
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  workspaces      Workspace[]
+  memberships     OrganizationMembership[]
+  auditLogs       AuditLog[]
+  features        OrganizationFeature[]
+  subscription    Subscription?
+  
+  // Usage tracking
+  currentMonthJobsCount Int @default(0)
+  currentMonthResumesCount Int @default(0)
+  currentMonthAppsCount Int @default(0)
+
+  @@index([slug])
+}
+
+model Plan {
+  id              String   @id @default(uuid())
+  name            String   @unique // "FREE", "PRO", "ENTERPRISE"
+  description     String?
+  priceId         String?  // Stripe Price ID
+  monthlyPrice    Int      @default(0) // in cents
+  currency        String   @default("USD")
+  
+  // Limits
+  maxWorkspaces   Int      @default(1)
+  maxJobsPerMonth Int      @default(10)
+  maxResumesCount Int      @default(50)
+  
+  features        String[] // List of enabled feature keys
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  subscriptions   Subscription[]
+}
+
+model Subscription {
+  id              String   @id @default(uuid())
+  organizationId  String   @unique
+  planId          String
+  status          String   @default("active") // "active", "past_due", "canceled", "incomplete"
+  
+  stripeId        String?  @unique // Stripe Subscription ID
+  currentPeriodEnd DateTime?
+  cancelAtPeriodEnd Boolean  @default(false)
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  plan            Plan         @relation(fields: [planId], references: [id])
+}
+
+model OrganizationMembership {
+  id              String    @id @default(uuid())
+  organizationId  String
+  userId          String
+  role            String    @default("MEMBER") // "OWNER", "ADMIN", "MEMBER", "RECRUITER"
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user            User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId])
+}
+
+model VerificationToken {
+  id        String   @id @default(uuid())
+  userId    String
+  token     String   @unique
+  type      String   // "EMAIL_VERIFICATION" | "PASSWORD_RESET"
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([userId])
+}
+
+model ConnectedAccount {
+  id                String   @id @default(uuid())
+  userId            String
+  provider          String   // "gmail", "outlook", etc.
+  providerAccountId String
+  accessToken       String
+  refreshToken      String?
+  tokenExpiresAt    DateTime?
+  scopes            String[]
+  status            String   @default("active")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, provider, providerAccountId])
+}
+
+model Mailbox {
+  id                String   @id @default(uuid())
+  workspaceId       String
+  email             String
+  provider          String
+  status            String   @default("active")
+  lastSyncAt        DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  workspace         Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 }
 
 model Workspace {
@@ -34,16 +157,19 @@ model Workspace {
   slug            String    @unique
   settings        Json      @default("{\"defaultApprovalMode\":\"manual\",\"autoSyncEnabled\":false,\"timezone\":\"UTC\",\"currency\":\"USD\"}")
   ownerId         String
+  organizationId  String?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
   owner           User      @relation("WorkspaceOwner", fields: [ownerId], references: [id])
+  organization    Organization? @relation(fields: [organizationId], references: [id])
   memberships     Membership[]
   sources         JobSource[]
   jobs            Job[]
   applications    Application[]
   profiles        CandidateProfile[]
   drafts          ApplicationDraft[]
+  mailboxes       Mailbox[]
 
   @@index([slug])
   @@index([ownerId])
@@ -239,7 +365,7 @@ model MatchScore {
 model Application {
   id              String   @id @default(uuid())
   workspaceId     String
-  candidateProfileId String
+  candidateProfileId String?
   jobId           String
   matchScoreId    String?
   status          String   @default("draft")
@@ -254,7 +380,7 @@ model Application {
   updatedAt       DateTime @updatedAt
 
   workspace       Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  candidateProfile CandidateProfile @relation(fields: [candidateProfileId], references: [id], onDelete: Cascade)
+  candidateProfile CandidateProfile? @relation(fields: [candidateProfileId], references: [id], onDelete: Cascade)
   job             Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
   matchScore      MatchScore? @relation(fields: [matchScoreId], references: [id])
 
@@ -299,6 +425,7 @@ model ApplicationDraft {
 
 model AuditLog {
   id              String       @id @default(uuid())
+  organizationId  String?
   workspaceId     String?
   userId          String?
   action          String
@@ -307,9 +434,24 @@ model AuditLog {
   changes         Json?
   createdAt       DateTime     @default(now())
 
+  organization    Organization? @relation(fields: [organizationId], references: [id])
+
+  @@index([organizationId])
   @@index([workspaceId])
   @@index([entityType, entityId])
   @@index([createdAt])
+}
+
+model OrganizationFeature {
+  id             String   @id @default(uuid())
+  organizationId String
+  featureName    String
+  isEnabled      Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  @@unique([organizationId, featureName])
 }
 
 model ScheduledTask {

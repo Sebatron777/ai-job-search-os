@@ -1,5 +1,5 @@
 {
-  "extends": "@ai-job-search/config/tsconfig",
+  "extends": "../config/tsconfig.base.json",
   "compilerOptions": {
     "outDir": "./dist",
     "rootDir": "./src"

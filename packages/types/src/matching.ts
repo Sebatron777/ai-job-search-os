@@ -2,8 +2,8 @@
  * Matching domain types
  */
 
-import type { JobId, SeniorityLevel, WorkMode } from "./jobs";
-import type { CandidateProfileId } from "./domain";
+import type { JobId } from "./jobs";
+import type { CandidateProfileId, JobType, WorkMode, SeniorityLevel, Timestamps } from "./domain";
 
 export type MatchScoreId = string;
 export type MatchReasonId = string;
@@ -35,8 +35,8 @@ export interface MatchScore {
   languageScore: number;
   
   // LLM-assisted analysis
-  llmReasoning?: string;
-  llmRecommendation?: MatchRecommendation;
+  llmReasoning?: string | undefined;
+  llmRecommendation?: MatchRecommendation | undefined;
   
   // Hard fails
   hasHardFail: boolean;
@@ -51,7 +51,7 @@ export interface MatchScore {
   
   // Recommendation
   recommendation: MatchRecommendation;
-  recommendedApplyMode?: "manual" | "assisted" | "auto";
+  recommendedApplyMode?: "manual" | "assisted" | "auto" | undefined;
   
   createdAt: Date;
   updatedAt: Date;

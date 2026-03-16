@@ -10,6 +10,16 @@
 
 import type { MailboxConnection, EmailThreadRef, ReplyEvent } from "@ai-job-search/types";
 
+export interface SyncResult {
+  success: boolean;
+  syncedCount: number;
+  error?: string;
+}
+
+
+
+
+
 /**
  * Gmail API client интерфейс
  */
@@ -98,6 +108,8 @@ export interface GmailMessageDetail extends GmailMessage {
   headers: Array<{ name: string; value: string }>;
   /** Parts (для multipart) */
   parts?: GmailMessageDetail[];
+  /** MIME type */
+  mimeType?: string;
 }
 
 /**
@@ -269,7 +281,7 @@ export class GmailIntegrationService {
       });
 
       // Обработать каждое письмо
-      const syncedCount = 0;
+      let syncedCount = 0;
       for (const message of messages) {
         await this.processMessage(message, mailbox);
         syncedCount++;
@@ -445,7 +457,6 @@ export class GmailIntegrationService {
     content: string,
     message: GmailMessage
   ): Promise<EmailClassificationResult> {
-    // TODO: Интеграция с LLM для классификации
     // Пока используем rule-based как fallback
     return this.ruleBasedClassify(content, message);
   }
@@ -571,14 +582,7 @@ export interface GmailAuthResult {
   providerAccountId: string;
 }
 
-/**
- * Результат sync
- */
-export interface SyncResult {
-  success: boolean;
-  syncedCount: number;
-  error?: string;
-}
+
 
 /**
  * Mock Gmail client для тестирования

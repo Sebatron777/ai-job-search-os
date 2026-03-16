@@ -55,4 +55,21 @@ export class AuthController {
   async login(@Body() dto: LoginRequest): Promise<AuthResponse> {
     return this.authService.login(dto as LoginDto);
   }
+
+  @Post("verify-email")
+  @ApiOperation({ summary: "Verify email address" })
+  @ApiResponse({ status: 200, description: "Email successfully verified" })
+  @ApiResponse({ status: 400, description: "Invalid or expired token" })
+  @HttpCode(HttpStatus.OK)
+  async verifyEmail(@Body("token") token: string) {
+    return this.authService.verifyEmail(token);
+  }
+
+  @Post("resend-verification")
+  @ApiOperation({ summary: "Resend verification email" })
+  @ApiResponse({ status: 200, description: "Verification email sent" })
+  @HttpCode(HttpStatus.OK)
+  async resendVerification(@Body("email") email: string) {
+    return this.authService.resendVerification(email);
+  }
 }

@@ -9,69 +9,49 @@
  * - Idempotent writes
  */
 
+import { Client } from "@notionhq/client";
 import type { NotionTarget, SyncLog } from "@ai-job-search/types";
 
 /**
- * Notion API client интерфейс
+ * Result of sync operation
  */
-export interface NotionClient {
-  /**
-   * Получить список баз данных
-   */
-  listDatabases(): Promise<NotionDatabase[]>;
-
-  /**
-   * Создать страницу в базе
-   */
-  createPage(
-    databaseId: string,
-    properties: Record<string, any>
-  ): Promise<NotionPage>;
-
-  /**
-   * Обновить страницу
-   */
-  updatePage(
-    pageId: string,
-    properties: Record<string, any>
-  ): Promise<NotionPage>;
-
-  /**
-   * Поиск страницы по property
-   */
-  queryDatabase(
-    databaseId: string,
-    filter: Record<string, any>
-  ): Promise<NotionPage[]>;
+export interface NotionSyncResult {
+  success: boolean;
+  syncedCount: number;
+  error?: string;
 }
 
-/**
- * Notion база данных
- */
-export interface NotionDatabase {
-  id: string;
-  title: Array<{ plain_text: string }>;
-  properties: Record<string, NotionProperty>;
-}
+
 
 /**
- * Notion property
- */
-export interface NotionProperty {
-  id: string;
-  type: string;
-  [key: string]: any;
-}
-
-/**
- * Notion страница
+ * Types for Notion API
  */
 export interface NotionPage {
   id: string;
   properties: Record<string, any>;
-  url: string;
-  created_time: string;
-  last_edited_time: string;
+  url?: string;
+  created_time?: string;
+  last_edited_time?: string;
+  cover?: any;
+  icon?: any;
+  parent?: any;
+  archived?: boolean;
+}
+
+export interface NotionDatabase {
+  id: string;
+  title: any[];
+  properties: Record<string, any>;
+}
+
+/**
+ * Interface defined for mocks
+ */
+export interface NotionClient {
+  listDatabases(): Promise<NotionDatabase[]>;
+  createPage(databaseId: string, properties: Record<string, any>): Promise<NotionPage>;
+  updatePage(pageId: string, properties: Record<string, any>): Promise<NotionPage>;
+  queryDatabase(databaseId: string, filter: Record<string, any>): Promise<NotionPage[]>;
 }
 
 /**
@@ -119,7 +99,7 @@ export interface NotionServiceConfig {
   /** API key */
   apiKey: string;
   /** Default database ID */
-  defaultDatabaseId?: string;
+  defaultDatabaseId?: string | undefined;
   /** Status mapping */
   statusMapping: Partial<StatusMapping>;
   /** Field mapping */
@@ -130,19 +110,22 @@ export interface NotionServiceConfig {
  * Сервис интеграции с Notion
  */
 export class NotionIntegrationService {
-  private client: NotionClient | null;
+  private client: Client | null = null;
   private config: NotionServiceConfig;
   private defaultStatusMapping: StatusMapping;
   private defaultFieldMapping: FieldMapping;
 
-  constructor(client?: NotionClient, config?: Partial<NotionServiceConfig>) {
-    this.client = client || null;
+  constructor(config?: Partial<NotionServiceConfig>) {
     this.config = {
-      apiKey: "",
+      apiKey: config?.apiKey || "",
       defaultDatabaseId: config?.defaultDatabaseId,
       statusMapping: config?.statusMapping || {},
       fieldMapping: config?.fieldMapping || {},
     };
+
+    if (this.config.apiKey) {
+      this.client = new Client({ auth: this.config.apiKey });
+    }
 
     this.defaultStatusMapping = {
       draft: "Draft",
@@ -216,19 +199,25 @@ export class NotionIntegrationService {
         application.id
       );
 
-      let page: NotionPage;
+      let page: any;
       if (existingPage) {
         // Обновить существующую
-        page = await this.client.updatePage(existingPage.id, properties);
+        page = await this.client.pages.update({
+          page_id: existingPage.id,
+          properties,
+        });
       } else {
         // Создать новую
-        page = await this.client.createPage(target.databaseId, properties);
+        page = await this.client.pages.create({
+          parent: { database_id: target.databaseId },
+          properties,
+        });
       }
 
       return {
         success: true,
         externalRef: page.id,
-        externalUrl: page.url,
+        externalUrl: (page as any).url,
         page,
       };
     } catch (error) {
@@ -269,7 +258,7 @@ export class NotionIntegrationService {
         rich_text: [{ text: { content: application.coverLetter || "" } }],
       },
       [fieldMapping.url]: {
-        url: application.job?.canonicalUrl,
+        url: application.job?.canonicalUrl || "https://example.com",
       },
     };
   }
@@ -280,11 +269,12 @@ export class NotionIntegrationService {
   private async findExistingPage(
     databaseId: string,
     applicationId: string
-  ): Promise<NotionPage | null> {
+  ): Promise<any | null> {
     if (!this.client) return null;
 
-    // Поиск по external ID (если сохранён)
-    const pages = await this.client.queryDatabase(databaseId, {
+    // Поиск по названию или кастомному полю
+    const response = await this.client.databases.query({
+      database_id: databaseId,
       filter: {
         property: "External ID",
         rich_text: {
@@ -293,7 +283,7 @@ export class NotionIntegrationService {
       },
     });
 
-    return pages[0] || null;
+    return response.results[0] || null;
   }
 
   /**
