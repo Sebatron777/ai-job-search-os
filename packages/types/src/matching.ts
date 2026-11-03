@@ -3,7 +3,7 @@
  */
 
 import type { JobId } from "./jobs";
-import type { CandidateProfileId, JobType, WorkMode, SeniorityLevel, Timestamps } from "./domain";
+import type { CandidateProfileId } from "./domain";
 
 export type MatchScoreId = string;
 export type MatchReasonId = string;

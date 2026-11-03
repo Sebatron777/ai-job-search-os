@@ -52,7 +52,7 @@ export class AnthropicClient implements LLMClient {
         throw new Error(`Anthropic API error: ${response.status} ${response.statusText} - ${errorText}`);
       }
 
-      const data = await response.json();
+      const data = (await response.json()) as any;
 
       return {
         content: data.content[0]?.text || "",
@@ -148,7 +148,7 @@ export class OpenAIClient implements LLMClient {
         throw new Error(`OpenAI API error: ${response.status} ${response.statusText} - ${errorText}`);
       }
 
-      const data = await response.json();
+      const data = (await response.json()) as any;
 
       return {
         content: data.choices[0]?.message?.content || "",

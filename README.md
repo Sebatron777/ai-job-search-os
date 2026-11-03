@@ -7,6 +7,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.5+-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![NestJS](https://img.shields.io/badge/Backend-NestJS%2010-E0234E?logo=nestjs&logoColor=white)](https://nestjs.com/)
 [![Next.js](https://img.shields.io/badge/Frontend-Next.js%2014-black?logo=next.js&logoColor=white)](https://nextjs.org/)
+[![CI](https://github.com/Sebatron777/ai-job-search-os/actions/workflows/ci.yml/badge.svg)](https://github.com/Sebatron777/ai-job-search-os/actions/workflows/ci.yml)
 [![Vitest](https://img.shields.io/badge/Tests-99%20Passed%20(Vitest)-brightgreen.svg)](packages/workers/src)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 

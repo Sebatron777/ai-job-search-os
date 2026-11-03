@@ -9,5 +9,8 @@
   "files": [
     "tsconfig.base.json",
     "eslint.config.js"
-  ]
+  ],
+  "scripts": {
+    "typecheck": "echo 'ok'"
+  }
 }

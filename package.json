@@ -12,7 +12,8 @@
     "build:all": "pnpm -r build",
     "build:api": "pnpm --filter @ai-job-search/api build",
     "build:web": "pnpm --filter @ai-job-search/web build",
-    "lint": "pnpm -r lint",
+    "lint": "eslint packages/ apps/api/src workers/ingest/src",
+    "typecheck": "pnpm -r run typecheck",
     "test": "pnpm -r test",
     "test:e2e": "pnpm --filter @ai-job-search/web test:e2e",
     "test:cycle": "tsx apps/api/scripts/test-full-cycle.ts",
@@ -28,8 +29,11 @@
     "clean-jobs": "pnpm --filter @ai-job-search/api clean-jobs"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "concurrently": "^8.2.2",
-    "tsx": "^4.21.0"
+    "eslint": "^10.14.0",
+    "tsx": "^4.21.0",
+    "typescript-eslint": "^8.72.1"
   },
   "packageManager": "pnpm@9.4.0",
   "engines": {

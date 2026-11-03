@@ -25,7 +25,7 @@ describe("DeduplicationService", () => {
         jobIds: [jobId],
         createdAt: new Date(),
         updatedAt: new Date(),
-      }),
+      } as any),
     };
 
     service = new DeduplicationService(mockRepository);

@@ -55,6 +55,9 @@ describe("DeterministicScoringService", () => {
     firstName: "John",
     lastName: "Doe",
     email: "john@example.com",
+    phone: null,
+    linkedinUrl: null,
+    websiteUrl: null,
     headline: "Senior Software Engineer",
     location: "San Francisco, CA",
     timezone: "America/Los_Angeles",
@@ -293,7 +296,7 @@ describe("DeterministicScoringService", () => {
       ];
 
       for (const { years, level, expectedMin } of testCases) {
-        const job = createMockJob({ seniorityLevel: level });
+        const job = createMockJob({ seniorityLevel: level as any });
         const candidate = createMockCandidate({ yearsOfExperience: years });
         const result = service.score(job, candidate);
         expect(result.seniorityScore).toBeGreaterThanOrEqual(expectedMin);

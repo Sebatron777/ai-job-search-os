@@ -43,7 +43,7 @@ export class HttpJsonSourceAdapter implements SourceAdapter {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const data = await response.json();
+      const data = (await response.json()) as any;
       
       // Предполагаем, что данные — это массив объектов или объект с полем jobs
       const rawJobs = Array.isArray(data) ? data : (data.jobs || data.results || []);

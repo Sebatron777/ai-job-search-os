@@ -2,7 +2,7 @@
  * Jobs domain types
  */
 
-import type { UUID, Timestamps, JobType, WorkMode, SeniorityLevel } from "./domain";
+import type { JobType, WorkMode, SeniorityLevel } from "./domain";
 
 export type JobId = string;
 export type JobSourceId = string;

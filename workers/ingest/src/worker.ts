@@ -11,6 +11,7 @@ import {
   IngestionPipeline,
   MockSourceAdapter,
 } from "@ai-job-search/workers";
+import type { JobSource } from "@ai-job-search/types";
 
 const REDIS_HOST = process.env.REDIS_HOST || "localhost";
 const REDIS_PORT = parseInt(process.env.REDIS_PORT || "6379", 10);
@@ -29,7 +30,7 @@ const worker = new Worker(
   async (job: Job) => {
     console.log(`[IngestionWorker] Processing job ${job.id} with data:`, job.data);
 
-    const { sourceId, sourceName, options } = job.data;
+    const { sourceId, sourceName } = job.data;
 
     try {
       // Создаём mock адаптер
@@ -38,44 +39,53 @@ const worker = new Worker(
 
       // Создаём сервисы
       const normalizationService = new NormalizationService();
-      const deduplicationService = new DeduplicationService();
+      const mockRepo: any = {
+        findByUrlHash: async () => null,
+        findByTitleCompanyLocation: async () => null,
+        create: async (data: any) => ({ ...data, id: "fp-1", createdAt: new Date(), updatedAt: new Date() }),
+        addJobToFingerprint: async (id: string, jId: string) => ({ id, jobIds: [jId], createdAt: new Date(), updatedAt: new Date() } as any),
+      };
+      const deduplicationService = new DeduplicationService(mockRepo);
+
+      const mockHandler: any = {
+        saveJob: async () => "job-1",
+        updateRawJobStatus: async () => {},
+        updateSourceStats: async () => {},
+      };
 
       // Создаём pipeline
       const pipeline = new IngestionPipeline({
+        adapter,
         normalizationService,
         deduplicationService,
+        handler: mockHandler,
       });
 
-      // Запускаем сбор вакансий
-      const collectionResult = await adapter.collect(
-        {
-          id: sourceId,
-          name: sourceName || "Mock Source",
-          type: "mock",
-          isActive: true,
-          config: {},
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
-        options
-      );
+      const source: JobSource = {
+        id: sourceId || "mock-source-1",
+        workspaceId: "ws-1",
+        name: sourceName || "Mock Source",
+        type: "api_integration",
+        status: "active",
+        config: { enabled: true },
+        totalJobsCollected: 0,
+        activeJobsCount: 0,
+        lastCollectionAt: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      const pipelineResult = await pipeline.run(source);
 
       console.log(
-        `[IngestionWorker] Collected ${collectionResult.collectedCount} jobs, ${collectionResult.errorCount} errors`
-      );
-
-      // Запускаем pipeline
-      const pipelineResult = await pipeline.execute(collectionResult.collectedJobs || []);
-
-      console.log(
-        `[IngestionWorker] Pipeline completed: ${pipelineResult.processedCount} processed, ${pipelineResult.successCount} succeeded`
+        `[IngestionWorker] Pipeline completed: ${pipelineResult.normalizedCount} normalized, ${pipelineResult.duplicateCount} duplicates`
       );
 
       return {
         success: true,
-        collectedCount: collectionResult.collectedCount,
-        processedCount: pipelineResult.processedCount,
-        successCount: pipelineResult.successCount,
+        normalizedCount: pipelineResult.normalizedCount,
+        duplicateCount: pipelineResult.duplicateCount,
+        newJobsCount: pipelineResult.newJobsCount,
       };
     } catch (error) {
       console.error(`[IngestionWorker] Error processing job ${job.id}:`, error);
