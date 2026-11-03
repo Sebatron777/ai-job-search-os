@@ -346,5 +346,61 @@ describe("DeterministicScoringService", () => {
       expect(result.skillGaps.some(g => g.skill.toLowerCase() === "go")).toBe(true);
       expect(result.skillMatches.length).toBe(0);
     });
+
+    it("should not match 'C' with 'Objective-C' or 'CJS'", () => {
+      const job = createMockJob({
+        requiredSkills: ["Objective-C"],
+        preferredSkills: [],
+      });
+      const candidate = createMockCandidate({
+        skills: ["C", "CJS"],
+      });
+
+      const result = service.score(job, candidate);
+      expect(result.skillGaps.some(g => g.skill.toLowerCase() === "objective-c")).toBe(true);
+      expect(result.skillMatches.length).toBe(0);
+    });
+
+    it("should not match 'React' with 'React-Native'", () => {
+      const job = createMockJob({
+        requiredSkills: ["React-Native"],
+        preferredSkills: [],
+      });
+      const candidate = createMockCandidate({
+        skills: ["React"],
+      });
+
+      const result = service.score(job, candidate);
+      expect(result.skillGaps.some(g => g.skill.toLowerCase() === "react-native")).toBe(true);
+      expect(result.skillMatches.length).toBe(0);
+    });
+
+    it("should match compound delimiter 'C / C++' with 'C'", () => {
+      const job = createMockJob({
+        requiredSkills: ["C / C++"],
+        preferredSkills: [],
+      });
+      const candidate = createMockCandidate({
+        skills: ["C"],
+      });
+
+      const result = service.score(job, candidate);
+      expect(result.skillMatches.length).toBe(1);
+      expect(result.skillGaps.length).toBe(0);
+    });
+
+    it("should match 'Node' with 'NodeJS' and 'Node.js'", () => {
+      const job = createMockJob({
+        requiredSkills: ["NodeJS"],
+        preferredSkills: [],
+      });
+      const candidate = createMockCandidate({
+        skills: ["Node.js"],
+      });
+
+      const result = service.score(job, candidate);
+      expect(result.skillMatches.length).toBe(1);
+      expect(result.skillGaps.length).toBe(0);
+    });
   });
 });

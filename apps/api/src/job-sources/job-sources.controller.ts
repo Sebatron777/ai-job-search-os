@@ -7,13 +7,16 @@ import {
   Body,
   Param,
   Query,
+  UseGuards,
 } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiResponse } from "@nestjs/swagger";
 import { JobSourcesService, CreateJobSourceDto } from "./job-sources.service";
 import { PrismaService } from "../database/prisma.service";
+import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 
 @ApiTags("sources")
 @Controller("sources")
+@UseGuards(JwtAuthGuard)
 export class JobSourcesController {
   constructor(
     private sourcesService: JobSourcesService,

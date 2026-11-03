@@ -90,4 +90,20 @@ describe("DraftGenerationService", () => {
       "Candidate has no resumes uploaded"
     );
   });
+
+  it("should throw NotFoundException on updateDraft if draft does not exist", async () => {
+    (prisma.applicationDraft.findUnique as any).mockResolvedValue(null);
+
+    await expect(service.updateDraft("non-existent-id", { coverLetter: "Updated" })).rejects.toThrow(
+      "Draft not found"
+    );
+  });
+
+  it("should throw NotFoundException on deleteDraft if draft does not exist", async () => {
+    (prisma.applicationDraft.findUnique as any).mockResolvedValue(null);
+
+    await expect(service.deleteDraft("non-existent-id")).rejects.toThrow(
+      "Draft not found"
+    );
+  });
 });

@@ -11,9 +11,8 @@ export class IntegrationsController {
   constructor(private integrationsService: IntegrationsService) {}
 
   @Get("accounts")
-  async getAccounts(@Request() req: any, @Query("userId") userId?: string) {
-    const targetUserId = req.user?.id || userId;
-    const accounts = await this.integrationsService.getConnectedAccounts(targetUserId);
+  async getAccounts(@Request() req: any) {
+    const accounts = await this.integrationsService.getConnectedAccounts(req.user.id);
     return accounts.map(({ accessToken, refreshToken, ...rest }: any) => rest);
   }
 
@@ -23,9 +22,8 @@ export class IntegrationsController {
   }
 
   @Get("gmail/connect")
-  async connectGmail(@Request() req: any, @Query("userId") userId?: string) {
-    const targetUserId = req.user?.id || userId;
-    const url = await this.integrationsService.getGmailConnectUrl(targetUserId);
+  async connectGmail(@Request() req: any) {
+    const url = await this.integrationsService.getGmailConnectUrl(req.user.id);
     return { url };
   }
 

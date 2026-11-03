@@ -134,7 +134,7 @@ export class MatchingService {
     }
 
     const jobs = await this.prisma.job.findMany({
-      where: { workspaceId, isActive: true },
+      where: { workspaceId, isActive: true, deletedAt: null },
       select: { id: true },
     });
 

@@ -121,7 +121,8 @@ export class DraftGenerationService {
     // 6. Factual checks
     const factualChecks = this.performFactualChecks(
       coverLetter,
-      candidate
+      candidate,
+      job
     );
 
     // 7. Validation
@@ -169,7 +170,7 @@ export class DraftGenerationService {
     // Ищем резюме с таргетированными ролями
     const normalizedJobTitle = job.title.toLowerCase();
     const targetedResume = resumes.find(r =>
-      r.targetedRoles.some(role =>
+      r.targetedRoles?.some(role =>
         normalizedJobTitle.includes(role.toLowerCase())
       )
     );
@@ -304,7 +305,8 @@ export class DraftGenerationService {
    */
   private performFactualChecks(
     coverLetter: string,
-    candidate: CandidateProfile
+    candidate: CandidateProfile,
+    job?: Job
   ): FactualCheck[] {
     const checks: FactualCheck[] = [];
     const lowerCL = coverLetter.toLowerCase();
@@ -312,12 +314,18 @@ export class DraftGenerationService {
     // Проверка: нет ли выдуманного опыта
     const claimedCompanies = this.extractCompaniesFromText(coverLetter);
     for (const company of claimedCompanies) {
-      const isReal = candidate.currentCompany?.toLowerCase().includes(company.toLowerCase()) ||
-                     candidate.excludedKeywords.some(k => k.toLowerCase().includes(company));
+      const lowerComp = company.toLowerCase();
+      // Игнорируем компанию, в которую подаётся заявка
+      if (job?.company && lowerComp === job.company.toLowerCase()) {
+        continue;
+      }
+      const isReal = (candidate.currentCompany && candidate.currentCompany.toLowerCase().includes(lowerComp)) ||
+                     (candidate.currentCompany && lowerComp.includes(candidate.currentCompany.toLowerCase())) ||
+                     (candidate.excludedKeywords || []).some(k => k.toLowerCase().includes(lowerComp));
       
       checks.push({
         check: `Company claim: ${company}`,
-        passed: isReal || company.toLowerCase().includes(candidate.currentCompany?.toLowerCase() || ""),
+        passed: Boolean(isReal),
         details: isReal ? "Confirmed in profile" : "Not found in profile",
       });
     }
@@ -386,7 +394,7 @@ export class DraftGenerationService {
     job: Job,
     candidate: CandidateProfile
   ): string {
-    const skills = candidate.skills.slice(0, 3).join(", ");
+    const skills = (candidate.skills || []).slice(0, 3).join(", ") || "relevant experience";
     
     return `Dear Hiring Manager,
 
@@ -407,7 +415,7 @@ ${candidate.firstName} ${candidate.lastName}`;
     job: Job,
     candidate: CandidateProfile
   ): string {
-    const firstSkill = candidate.skills[0] || "relevant experience";
+    const firstSkill = (candidate.skills || [])[0] || "relevant experience";
     
     return `Hi, I'm ${candidate.firstName}. I'm interested in the ${job.title} role at ${job.company}. I have strong experience in ${firstSkill} and would love to contribute to your team.`;
   }

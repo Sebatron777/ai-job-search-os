@@ -151,15 +151,15 @@ export function buildCoverLetterPrompt(input: CoverLetterPromptInput): string {
 - Current Title: ${candidate.currentTitle || "N/A"}
 - Current Company: ${candidate.currentCompany || "N/A"}
 - Years of Experience: ${candidate.yearsOfExperience ?? "N/A"}
-- Key Skills: ${candidate.skills.slice(0, 8).join(", ")}
+- Key Skills: ${(candidate.skills || []).slice(0, 8).join(", ") || "None"}
 
 ## Relevant Experience
-${candidate.skills.length > 0 ? `- Skills: ${candidate.skills.join(", ")}` : ""}
+${(candidate.skills || []).length > 0 ? `- Skills: ${candidate.skills.join(", ")}` : ""}
 
 ## Job Posting
 - Title: ${job.title}
 - Company: ${job.company}
-- Required Skills: ${job.requiredSkills.join(", ")}
+- Required Skills: ${(job.requiredSkills || []).join(", ") || "None"}
 - Key Responsibilities: ${job.responsibilities?.slice(0, 3).join("; ") || "N/A"}
 
 ## Job Description
@@ -201,7 +201,7 @@ export function buildIntroMessagePrompt(input: IntroMessagePromptInput): string 
 ## Candidate
 - Name: ${candidate.firstName} ${candidate.lastName}
 - Current Title: ${candidate.currentTitle || "N/A"}
-- Key Skill: ${candidate.skills[0] || "relevant experience"}
+- Key Skill: ${(candidate.skills || [])[0] || "relevant experience"}
 
 ## Job
 - Title: ${job.title}
@@ -288,15 +288,15 @@ export function buildInterviewPrepPrompt(input: InterviewPrepPromptInput): strin
 ## Candidate Profile
 - Headline: ${candidate.headline || "N/A"}
 - Experience: ${candidate.yearsOfExperience ?? "N/A"} years
-- Top Skills: ${candidate.skills.slice(0, 10).join(", ")}
+- Top Skills: ${(candidate.skills || []).slice(0, 10).join(", ") || "None"}
 
 ## Job Details
 - Title: ${job.title}
 - Company: ${job.company}
-- Key Requirements: ${job.requiredSkills.slice(0, 5).join(", ")}
+- Key Requirements: ${(job.requiredSkills || []).slice(0, 5).join(", ") || "None"}
 
 ## Job Description Preview
-${job.description.slice(0, 1000)}...
+${(job.description || "").slice(0, 1000)}...
 
 ## Task
 Based on the candidate's background and the job requirements, generate:

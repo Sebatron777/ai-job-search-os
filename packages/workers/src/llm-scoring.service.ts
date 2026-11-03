@@ -536,7 +536,23 @@ export class LLMScoringService {
  */
 export class MockLLMClient implements LLMClient {
   async generate(prompt: string, options?: LLMOptions): Promise<LLMResponse> {
-    // Возвращаем фиктивный ответ для тестирования
+    const lowerPrompt = prompt.toLowerCase();
+    if (lowerPrompt.includes("cover letter")) {
+      return {
+        content:
+          "Dear Hiring Team,\n\nI am writing to express my strong enthusiasm for this position. With my extensive hands-on experience and solid technical background, I am confident in my ability to make an immediate impact on your engineering initiatives.\n\nThank you for your time and consideration.\n\nBest regards,\nCandidate",
+        usage: { promptTokens: 100, completionTokens: 60, totalTokens: 160 },
+      };
+    }
+    if (lowerPrompt.includes("intro message")) {
+      return {
+        content:
+          "Hi! I came across this exciting role and wanted to reach out directly. My experience aligns closely with your team's focus, and I would love to connect.",
+        usage: { promptTokens: 50, completionTokens: 35, totalTokens: 85 },
+      };
+    }
+
+    // Возвращаем фиктивный ответ для скоринга
     return {
       content: JSON.stringify({
         reasoning: "Кандидат хорошо подходит по навыкам и опыту",

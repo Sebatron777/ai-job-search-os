@@ -216,11 +216,14 @@ export class DeterministicScoringService {
    * Скор по навыкам
    */
   private scoreSkills(
-    requiredSkills: string[],
-    preferredSkills: string[],
-    candidateSkills: string[]
+    requiredSkills: string[] = [],
+    preferredSkills: string[] = [],
+    candidateSkills: string[] = []
   ): { score: number; matches: SkillMatch[]; gaps: SkillGap[] } {
-    const normalizedCandidate = candidateSkills.map(s => normalizeText(s));
+    const safeCandidate = candidateSkills || [];
+    const safeRequired = requiredSkills || [];
+    const safePreferred = preferredSkills || [];
+    const normalizedCandidate = safeCandidate.map(s => normalizeText(s));
     const matches: SkillMatch[] = [];
     const gaps: SkillGap[] = [];
 
@@ -228,7 +231,7 @@ export class DeterministicScoringService {
     let requiredMatched = 0;
 
     // Проверка required навыков
-    for (const skill of requiredSkills) {
+    for (const skill of safeRequired) {
       const normalized = normalizeText(skill);
       const candidateLevel = this.findSkillLevel(normalized, normalizedCandidate);
 
@@ -258,7 +261,7 @@ export class DeterministicScoringService {
     }
 
     // Проверка preferred навыков
-    for (const skill of preferredSkills) {
+    for (const skill of safePreferred) {
       const normalized = normalizeText(skill);
       const candidateLevel = this.findSkillLevel(normalized, normalizedCandidate);
 
@@ -276,13 +279,13 @@ export class DeterministicScoringService {
     }
 
     // Бонус за покрытие всех required навыков
-    if (requiredSkills.length > 0) {
-      const coverageBonus = (requiredMatched / requiredSkills.length) * 20;
+    if (safeRequired.length > 0) {
+      const coverageBonus = (requiredMatched / safeRequired.length) * 20;
       totalScore += coverageBonus;
     }
 
     // Нормализация скора
-    const maxPossibleScore = (requiredSkills.length * 100 + preferredSkills.length * 50);
+    const maxPossibleScore = (safeRequired.length * 100 + safePreferred.length * 50);
     const score = maxPossibleScore > 0 
       ? Math.round((totalScore / maxPossibleScore) * 100)
       : 100; // Если навыков не указано - полный скор
@@ -449,15 +452,28 @@ export class DeterministicScoringService {
   private matchesSkill(requiredSkill: string, candidateSkill: string): boolean {
     const req = requiredSkill.toLowerCase().trim();
     const cand = candidateSkill.toLowerCase().trim();
+    if (!req || !cand) return false;
     if (req === cand) return true;
 
     // Handle common tech suffixes like .js / js, .ts / ts
-    if (req.replace(/\.?js$/i, "") === cand.replace(/\.?js$/i, "")) return true;
-    if (req.replace(/\.?ts$/i, "") === cand.replace(/\.?ts$/i, "")) return true;
+    const normalizeTechSuffix = (s: string) => {
+      if (s.endsWith(".js") || s.endsWith(".ts")) {
+        return s.slice(0, -3);
+      }
+      if (s.length >= 5 && (s.endsWith("js") || s.endsWith("ts"))) {
+        return s.slice(0, -2);
+      }
+      return s;
+    };
+
+    const normReq = normalizeTechSuffix(req);
+    const normCand = normalizeTechSuffix(cand);
+    if (normReq.length >= 3 && normReq === normCand) return true;
 
     const escapeRegex = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     const isBoundaryMatch = (shortStr: string, longStr: string) => {
-      const pattern = new RegExp(`(^|[^a-z0-9#+])` + escapeRegex(shortStr) + `($|[^a-z0-9#+])`, "i");
+      // Delimiters: whitespace, slashes, commas, etc., but NOT hyphen or underscore (e.g. objective-c, react-native)
+      const pattern = new RegExp(`(^|[^a-z0-9#+_-])` + escapeRegex(shortStr) + `($|[^a-z0-9#+_-])`, "i");
       return pattern.test(longStr);
     };
 

@@ -34,7 +34,8 @@ export class VerificationService {
     });
 
     // Отправляем email
-    const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${token}`;
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+    const verificationUrl = `${frontendUrl}/verify-email?token=${token}`;
     const html = `
       <h1>Verify your email</h1>
       <p>Click the link below to verify your email address for AI Job Search OS:</p>

@@ -158,6 +158,13 @@ export class DraftGenerationService {
       resumeAssetId?: string;
     }
   ) {
+    const existing = await this.prisma.applicationDraft.findUnique({
+      where: { id: draftId },
+    });
+    if (!existing) {
+      throw new NotFoundException("Draft not found");
+    }
+
     return this.prisma.applicationDraft.update({
       where: { id: draftId },
       data: updates,
@@ -168,6 +175,13 @@ export class DraftGenerationService {
    * Удалить черновик
    */
   async deleteDraft(draftId: string) {
+    const existing = await this.prisma.applicationDraft.findUnique({
+      where: { id: draftId },
+    });
+    if (!existing) {
+      throw new NotFoundException("Draft not found");
+    }
+
     await this.prisma.applicationDraft.delete({
       where: { id: draftId },
     });
