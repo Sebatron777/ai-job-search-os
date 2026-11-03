@@ -1,15 +1,20 @@
-import { Controller, Get, Query } from "@nestjs/common";
+import { Controller, Get, Query, Request, UseGuards } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { IntegrationsService } from "./integrations.service";
+import { JwtAuthGuard } from "../auth/jwt-auth.guard";
+import { Public } from "../auth/public.decorator";
 
 @ApiTags("integrations")
 @Controller("integrations")
+@UseGuards(JwtAuthGuard)
 export class IntegrationsController {
   constructor(private integrationsService: IntegrationsService) {}
 
   @Get("accounts")
-  async getAccounts(@Query("userId") userId: string) {
-    return this.integrationsService.getConnectedAccounts(userId);
+  async getAccounts(@Request() req: any, @Query("userId") userId?: string) {
+    const targetUserId = req.user?.id || userId;
+    const accounts = await this.integrationsService.getConnectedAccounts(targetUserId);
+    return accounts.map(({ accessToken, refreshToken, ...rest }: any) => rest);
   }
 
   @Get("mailboxes")
@@ -18,11 +23,13 @@ export class IntegrationsController {
   }
 
   @Get("gmail/connect")
-  async connectGmail(@Query("userId") userId: string) {
-    const url = await this.integrationsService.getGmailConnectUrl(userId);
+  async connectGmail(@Request() req: any, @Query("userId") userId?: string) {
+    const targetUserId = req.user?.id || userId;
+    const url = await this.integrationsService.getGmailConnectUrl(targetUserId);
     return { url };
   }
 
+  @Public()
   @Get("gmail/callback")
   async handleGmailCallback(
     @Query("code") code: string,

@@ -7,12 +7,15 @@ import {
   Param,
   Query,
   Request,
+  UseGuards,
 } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiResponse } from "@nestjs/swagger";
 import { ProfilesService, CreateProfileDto, CreateJobPreferenceDto } from "./profiles.service";
+import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 
 @ApiTags("profiles")
 @Controller("profiles")
+@UseGuards(JwtAuthGuard)
 export class ProfilesController {
   constructor(private profilesService: ProfilesService) {}
 
@@ -21,7 +24,7 @@ export class ProfilesController {
   @ApiResponse({ status: 200 })
   async getMyProfile(@Request() req: any, @Query("workspaceId") workspaceId: string) {
     return this.profilesService.findByUserAndWorkspace(
-      req.user?.id || "user-id",
+      req.user.id,
       workspaceId
     );
   }
@@ -34,7 +37,7 @@ export class ProfilesController {
     @Query("workspaceId") workspaceId: string,
     @Body() dto: CreateProfileDto
   ) {
-    return this.profilesService.create(req.user?.id || "user-id", workspaceId, dto);
+    return this.profilesService.create(req.user.id, workspaceId, dto);
   }
 
   @Put(":id")

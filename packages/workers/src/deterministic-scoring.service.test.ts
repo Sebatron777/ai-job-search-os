@@ -303,4 +303,48 @@ describe("DeterministicScoringService", () => {
       }
     });
   });
+
+  describe("scoreSkills precision", () => {
+    it("should not match short skill names like 'c' against 'react' or 'docker'", () => {
+      const job = createMockJob({
+        requiredSkills: ["C"],
+        preferredSkills: [],
+      });
+      const candidate = createMockCandidate({
+        skills: ["React", "Docker"],
+      });
+
+      const result = service.score(job, candidate);
+      expect(result.skillGaps.some(g => g.skill.toLowerCase() === "c")).toBe(true);
+      expect(result.skillMatches.length).toBe(0);
+    });
+
+    it("should accurately match skill with boundary like 'React' and 'React.js'", () => {
+      const job = createMockJob({
+        requiredSkills: ["React.js"],
+        preferredSkills: [],
+      });
+      const candidate = createMockCandidate({
+        skills: ["React"],
+      });
+
+      const result = service.score(job, candidate);
+      expect(result.skillMatches.length).toBe(1);
+      expect(result.skillGaps.length).toBe(0);
+    });
+
+    it("should not match 'Go' with 'Django' or 'algorithm'", () => {
+      const job = createMockJob({
+        requiredSkills: ["Go"],
+        preferredSkills: [],
+      });
+      const candidate = createMockCandidate({
+        skills: ["Django", "Algorithm"],
+      });
+
+      const result = service.score(job, candidate);
+      expect(result.skillGaps.some(g => g.skill.toLowerCase() === "go")).toBe(true);
+      expect(result.skillMatches.length).toBe(0);
+    });
+  });
 });

@@ -14,7 +14,7 @@ export class AnthropicClient implements LLMClient {
   private model: string;
   private baseUrl: string = "https://api.anthropic.com/v1";
 
-  constructor(apiKey: string, model: string = "claude-sonnet-4-5-20250929") {
+  constructor(apiKey: string, model: string = "claude-3-5-sonnet-20241022") {
     this.apiKey = apiKey;
     this.model = model;
   }

@@ -104,8 +104,27 @@ export class WorkspacesService {
     return workspace;
   }
 
-  async update(id: string, dto: UpdateWorkspaceDto) {
-    const workspace = await this.prisma.workspace.update({
+  async update(id: string, userId: string, dto: UpdateWorkspaceDto) {
+    const workspace = await this.prisma.workspace.findUnique({
+      where: { id },
+    });
+
+    if (!workspace) {
+      throw new NotFoundException("Workspace not found");
+    }
+
+    const membership = await this.prisma.membership.findFirst({
+      where: {
+        workspaceId: id,
+        userId,
+      },
+    });
+
+    if (!membership && workspace.ownerId !== userId) {
+      throw new ForbiddenException("You do not have access to update this workspace");
+    }
+
+    const updatedWorkspace = await this.prisma.workspace.update({
       where: { id },
       data: {
         name: dto.name,
@@ -113,7 +132,7 @@ export class WorkspacesService {
       },
     });
 
-    return workspace;
+    return updatedWorkspace;
   }
 
   async getMemberships(userId: string) {

@@ -437,12 +437,31 @@ export class DeterministicScoringService {
     skill: string,
     candidateSkills: string[]
   ): SkillLevel | null {
-    // Упрощённая логика - если навык есть, считаем advanced
-    // В реальности нужно парсить резюме
-    if (candidateSkills.some(s => s.includes(skill) || skill.includes(s))) {
+    if (candidateSkills.some(s => this.matchesSkill(skill, s))) {
       return "advanced";
     }
     return null;
+  }
+
+  /**
+   * Проверить соответствие навыков по границам слов / токенов
+   */
+  private matchesSkill(requiredSkill: string, candidateSkill: string): boolean {
+    const req = requiredSkill.toLowerCase().trim();
+    const cand = candidateSkill.toLowerCase().trim();
+    if (req === cand) return true;
+
+    // Handle common tech suffixes like .js / js, .ts / ts
+    if (req.replace(/\.?js$/i, "") === cand.replace(/\.?js$/i, "")) return true;
+    if (req.replace(/\.?ts$/i, "") === cand.replace(/\.?ts$/i, "")) return true;
+
+    const escapeRegex = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const isBoundaryMatch = (shortStr: string, longStr: string) => {
+      const pattern = new RegExp(`(^|[^a-z0-9#+])` + escapeRegex(shortStr) + `($|[^a-z0-9#+])`, "i");
+      return pattern.test(longStr);
+    };
+
+    return isBoundaryMatch(req, cand) || isBoundaryMatch(cand, req);
   }
 
   /**

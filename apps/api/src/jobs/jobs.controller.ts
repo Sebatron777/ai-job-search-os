@@ -7,6 +7,7 @@ import { RequireLimit } from "../common/decorators/limit.decorator";
 
 @ApiTags("jobs")
 @Controller("jobs")
+@UseGuards(JwtAuthGuard)
 export class JobsController {
   constructor(private jobsService: JobsService) {}
 

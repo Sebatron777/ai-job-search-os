@@ -67,9 +67,9 @@ export function buildMatchingPrompt(input: MatchingPromptInput): string {
 - Headline: ${candidate.headline || "N/A"}
 - Current Title: ${candidate.currentTitle || "N/A"}
 - Years of Experience: ${candidate.yearsOfExperience ?? "N/A"}
-- Skills: ${candidate.skills.join(", ")}
-- Preferred Keywords: ${candidate.preferredKeywords.join(", ")}
-- Excluded Keywords: ${candidate.excludedKeywords.join(", ")}
+- Skills: ${(candidate.skills || []).join(", ") || "None"}
+- Preferred Keywords: ${(candidate.preferredKeywords || []).join(", ") || "None"}
+- Excluded Keywords: ${(candidate.excludedKeywords || []).join(", ") || "None"}
 
 ## Job Posting
 - Title: ${job.title}
@@ -78,8 +78,8 @@ export function buildMatchingPrompt(input: MatchingPromptInput): string {
 - Type: ${job.jobType}
 - Seniority: ${job.seniorityLevel || "N/A"}
 - Salary: ${job.salaryDisplay || "N/A"}
-- Required Skills: ${job.requiredSkills.join(", ")}
-- Preferred Skills: ${job.preferredSkills.join(", ")}
+- Required Skills: ${(job.requiredSkills || []).join(", ") || "None"}
+- Preferred Skills: ${(job.preferredSkills || []).join(", ") || "None"}
 
 ## Job Description
 ${job.description}

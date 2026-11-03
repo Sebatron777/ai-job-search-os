@@ -50,7 +50,7 @@ export class AnalyticsService {
     });
 
     const sourceStats = jobs.reduce((acc: any, job: any) => {
-      const sourceName = job.source.name || "Unknown";
+      const sourceName = job.source?.name || "Direct / Unknown";
       if (!acc[sourceName]) {
         acc[sourceName] = { jobs: 0, applications: 0 };
       }

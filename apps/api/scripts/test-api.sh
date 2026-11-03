@@ -42,8 +42,7 @@ REGISTER_RESPONSE=$(curl -s -X POST "$API_URL/auth/register" \
   -d '{
     "email": "test@example.com",
     "password": "password123",
-    "firstName": "Test",
-    "lastName": "User"
+    "name": "Test User"
   }')
 
 echo "   $REGISTER_RESPONSE"
@@ -84,7 +83,7 @@ echo ""
 
 # 5. Create candidate profile
 echo "5️⃣  Creating candidate profile..."
-PROFILE_RESPONSE=$(curl -s -X POST "$API_URL/profiles" \
+PROFILE_RESPONSE=$(curl -s -X POST "$API_URL/profiles?workspaceId=$WORKSPACE_ID" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN" \
   -d '{
@@ -101,22 +100,22 @@ echo ""
 
 # 6. Create mock job source
 echo "6️⃣  Creating mock job source..."
-SOURCE_RESPONSE=$(curl -s -X POST "$API_URL/job-sources" \
+SOURCE_RESPONSE=$(curl -s -X POST "$API_URL/sources" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN" \
-  -d '{
-    "name": "Mock Jobs",
-    "type": "mock",
-    "isActive": true,
-    "config": {}
-  }')
+  -d "{
+    \"workspaceId\": \"$WORKSPACE_ID\",
+    \"name\": \"Mock Jobs\",
+    \"type\": \"mock\",
+    \"config\": {}
+  }")
 echo "   $SOURCE_RESPONSE"
 SOURCE_ID=$(echo "$SOURCE_RESPONSE" | grep -o '"id":"[^"]*' | cut -d'"' -f4)
 echo ""
 
 # 7. Trigger ingestion
 echo "7️⃣  Triggering job ingestion..."
-INGEST_RESPONSE=$(curl -s -X POST "$API_URL/job-sources/$SOURCE_ID/ingest" \
+INGEST_RESPONSE=$(curl -s -X POST "$API_URL/sources/$SOURCE_ID/ingest" \
   -H "Authorization: Bearer $TOKEN")
 echo "   $INGEST_RESPONSE"
 echo ""
@@ -127,14 +126,14 @@ sleep 3
 
 # 9. Get jobs
 echo "9️⃣  Getting jobs..."
-JOBS_RESPONSE=$(curl -s "$API_URL/jobs?limit=5" \
+JOBS_RESPONSE=$(curl -s "$API_URL/jobs?workspaceId=$WORKSPACE_ID&limit=5" \
   -H "Authorization: Bearer $TOKEN")
 echo "   $JOBS_RESPONSE"
 echo ""
 
 # 10. Get job sources
 echo "🔟 Getting job sources..."
-SOURCES_RESPONSE=$(curl -s "$API_URL/job-sources" \
+SOURCES_RESPONSE=$(curl -s "$API_URL/sources?workspaceId=$WORKSPACE_ID" \
   -H "Authorization: Bearer $TOKEN")
 echo "   $SOURCES_RESPONSE"
 echo ""

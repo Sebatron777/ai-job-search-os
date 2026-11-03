@@ -233,7 +233,8 @@ export class LLMScoringService {
     const hardFails: HardFailReason[] = [];
 
     // Проверка excluded companies
-    if (candidate.excludedKeywords.some(k => 
+    const excludedKeywords = candidate.excludedKeywords || [];
+    if (excludedKeywords.some(k => 
       job.company.toLowerCase().includes(k.toLowerCase())
     )) {
       hardFails.push("excluded_company");
@@ -241,7 +242,7 @@ export class LLMScoringService {
 
     // Проверка excluded keywords в описании
     const descriptionLower = job.description.toLowerCase();
-    if (candidate.excludedKeywords.some(k =>
+    if (excludedKeywords.some(k =>
       descriptionLower.includes(k.toLowerCase())
     )) {
       hardFails.push("excluded_keyword");
