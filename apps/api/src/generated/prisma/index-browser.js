@@ -286,6 +286,7 @@ exports.Prisma.ResumeAssetScalarFieldEnum = {
   mimeType: 'mimeType',
   sizeBytes: 'sizeBytes',
   isDefault: 'isDefault',
+  targetedRoles: 'targetedRoles',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };

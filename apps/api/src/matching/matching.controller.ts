@@ -5,9 +5,11 @@ import {
   Body,
   Param,
   Query,
+  UseGuards,
 } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiResponse } from "@nestjs/swagger";
 import { MatchingService } from "./matching.service";
+import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 
 class ScoreJobDto {
   candidateProfileId!: string;
@@ -15,6 +17,7 @@ class ScoreJobDto {
 
 @ApiTags("matching")
 @Controller("matching")
+@UseGuards(JwtAuthGuard)
 export class MatchingController {
   constructor(private matchingService: MatchingService) {}
 

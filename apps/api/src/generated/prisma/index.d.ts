@@ -15645,6 +15645,7 @@ export namespace Prisma {
     mimeType: number
     sizeBytes: number
     isDefault: number
+    targetedRoles: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -15691,6 +15692,7 @@ export namespace Prisma {
     mimeType?: true
     sizeBytes?: true
     isDefault?: true
+    targetedRoles?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -15790,6 +15792,7 @@ export namespace Prisma {
     mimeType: string
     sizeBytes: number
     isDefault: boolean
+    targetedRoles: string[]
     createdAt: Date
     updatedAt: Date
     _count: ResumeAssetCountAggregateOutputType | null
@@ -15821,6 +15824,7 @@ export namespace Prisma {
     mimeType?: boolean
     sizeBytes?: boolean
     isDefault?: boolean
+    targetedRoles?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     candidateProfile?: boolean | CandidateProfileDefaultArgs<ExtArgs>
@@ -15834,6 +15838,7 @@ export namespace Prisma {
     mimeType?: boolean
     sizeBytes?: boolean
     isDefault?: boolean
+    targetedRoles?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     candidateProfile?: boolean | CandidateProfileDefaultArgs<ExtArgs>
@@ -15847,6 +15852,7 @@ export namespace Prisma {
     mimeType?: boolean
     sizeBytes?: boolean
     isDefault?: boolean
+    targetedRoles?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
@@ -15871,6 +15877,7 @@ export namespace Prisma {
       mimeType: string
       sizeBytes: number
       isDefault: boolean
+      targetedRoles: string[]
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["resumeAsset"]>
@@ -16274,6 +16281,7 @@ export namespace Prisma {
     readonly mimeType: FieldRef<"ResumeAsset", 'String'>
     readonly sizeBytes: FieldRef<"ResumeAsset", 'Int'>
     readonly isDefault: FieldRef<"ResumeAsset", 'Boolean'>
+    readonly targetedRoles: FieldRef<"ResumeAsset", 'String[]'>
     readonly createdAt: FieldRef<"ResumeAsset", 'DateTime'>
     readonly updatedAt: FieldRef<"ResumeAsset", 'DateTime'>
   }
@@ -25460,6 +25468,7 @@ export namespace Prisma {
     mimeType: 'mimeType',
     sizeBytes: 'sizeBytes',
     isDefault: 'isDefault',
+    targetedRoles: 'targetedRoles',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -26817,6 +26826,7 @@ export namespace Prisma {
     mimeType?: StringFilter<"ResumeAsset"> | string
     sizeBytes?: IntFilter<"ResumeAsset"> | number
     isDefault?: BoolFilter<"ResumeAsset"> | boolean
+    targetedRoles?: StringNullableListFilter<"ResumeAsset">
     createdAt?: DateTimeFilter<"ResumeAsset"> | Date | string
     updatedAt?: DateTimeFilter<"ResumeAsset"> | Date | string
     candidateProfile?: XOR<CandidateProfileRelationFilter, CandidateProfileWhereInput>
@@ -26830,6 +26840,7 @@ export namespace Prisma {
     mimeType?: SortOrder
     sizeBytes?: SortOrder
     isDefault?: SortOrder
+    targetedRoles?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     candidateProfile?: CandidateProfileOrderByWithRelationInput
@@ -26846,6 +26857,7 @@ export namespace Prisma {
     mimeType?: StringFilter<"ResumeAsset"> | string
     sizeBytes?: IntFilter<"ResumeAsset"> | number
     isDefault?: BoolFilter<"ResumeAsset"> | boolean
+    targetedRoles?: StringNullableListFilter<"ResumeAsset">
     createdAt?: DateTimeFilter<"ResumeAsset"> | Date | string
     updatedAt?: DateTimeFilter<"ResumeAsset"> | Date | string
     candidateProfile?: XOR<CandidateProfileRelationFilter, CandidateProfileWhereInput>
@@ -26859,6 +26871,7 @@ export namespace Prisma {
     mimeType?: SortOrder
     sizeBytes?: SortOrder
     isDefault?: SortOrder
+    targetedRoles?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: ResumeAssetCountOrderByAggregateInput
@@ -26879,6 +26892,7 @@ export namespace Prisma {
     mimeType?: StringWithAggregatesFilter<"ResumeAsset"> | string
     sizeBytes?: IntWithAggregatesFilter<"ResumeAsset"> | number
     isDefault?: BoolWithAggregatesFilter<"ResumeAsset"> | boolean
+    targetedRoles?: StringNullableListFilter<"ResumeAsset">
     createdAt?: DateTimeWithAggregatesFilter<"ResumeAsset"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"ResumeAsset"> | Date | string
   }
@@ -28922,6 +28936,7 @@ export namespace Prisma {
     mimeType: string
     sizeBytes: number
     isDefault?: boolean
+    targetedRoles?: ResumeAssetCreatetargetedRolesInput | string[]
     createdAt?: Date | string
     updatedAt?: Date | string
     candidateProfile: CandidateProfileCreateNestedOneWithoutResumesInput
@@ -28935,6 +28950,7 @@ export namespace Prisma {
     mimeType: string
     sizeBytes: number
     isDefault?: boolean
+    targetedRoles?: ResumeAssetCreatetargetedRolesInput | string[]
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -28946,6 +28962,7 @@ export namespace Prisma {
     mimeType?: StringFieldUpdateOperationsInput | string
     sizeBytes?: IntFieldUpdateOperationsInput | number
     isDefault?: BoolFieldUpdateOperationsInput | boolean
+    targetedRoles?: ResumeAssetUpdatetargetedRolesInput | string[]
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     candidateProfile?: CandidateProfileUpdateOneRequiredWithoutResumesNestedInput
@@ -28959,6 +28976,7 @@ export namespace Prisma {
     mimeType?: StringFieldUpdateOperationsInput | string
     sizeBytes?: IntFieldUpdateOperationsInput | number
     isDefault?: BoolFieldUpdateOperationsInput | boolean
+    targetedRoles?: ResumeAssetUpdatetargetedRolesInput | string[]
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -28971,6 +28989,7 @@ export namespace Prisma {
     mimeType: string
     sizeBytes: number
     isDefault?: boolean
+    targetedRoles?: ResumeAssetCreatetargetedRolesInput | string[]
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -28982,6 +29001,7 @@ export namespace Prisma {
     mimeType?: StringFieldUpdateOperationsInput | string
     sizeBytes?: IntFieldUpdateOperationsInput | number
     isDefault?: BoolFieldUpdateOperationsInput | boolean
+    targetedRoles?: ResumeAssetUpdatetargetedRolesInput | string[]
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -28994,6 +29014,7 @@ export namespace Prisma {
     mimeType?: StringFieldUpdateOperationsInput | string
     sizeBytes?: IntFieldUpdateOperationsInput | number
     isDefault?: BoolFieldUpdateOperationsInput | boolean
+    targetedRoles?: ResumeAssetUpdatetargetedRolesInput | string[]
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -30935,6 +30956,7 @@ export namespace Prisma {
     mimeType?: SortOrder
     sizeBytes?: SortOrder
     isDefault?: SortOrder
+    targetedRoles?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -32835,10 +32857,19 @@ export namespace Prisma {
     update?: XOR<XOR<CandidateProfileUpdateToOneWithWhereWithoutPreferencesInput, CandidateProfileUpdateWithoutPreferencesInput>, CandidateProfileUncheckedUpdateWithoutPreferencesInput>
   }
 
+  export type ResumeAssetCreatetargetedRolesInput = {
+    set: string[]
+  }
+
   export type CandidateProfileCreateNestedOneWithoutResumesInput = {
     create?: XOR<CandidateProfileCreateWithoutResumesInput, CandidateProfileUncheckedCreateWithoutResumesInput>
     connectOrCreate?: CandidateProfileCreateOrConnectWithoutResumesInput
     connect?: CandidateProfileWhereUniqueInput
+  }
+
+  export type ResumeAssetUpdatetargetedRolesInput = {
+    set?: string[]
+    push?: string | string[]
   }
 
   export type CandidateProfileUpdateOneRequiredWithoutResumesNestedInput = {
@@ -35855,6 +35886,7 @@ export namespace Prisma {
     mimeType: string
     sizeBytes: number
     isDefault?: boolean
+    targetedRoles?: ResumeAssetCreatetargetedRolesInput | string[]
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -35866,6 +35898,7 @@ export namespace Prisma {
     mimeType: string
     sizeBytes: number
     isDefault?: boolean
+    targetedRoles?: ResumeAssetCreatetargetedRolesInput | string[]
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -36188,6 +36221,7 @@ export namespace Prisma {
     mimeType?: StringFilter<"ResumeAsset"> | string
     sizeBytes?: IntFilter<"ResumeAsset"> | number
     isDefault?: BoolFilter<"ResumeAsset"> | boolean
+    targetedRoles?: StringNullableListFilter<"ResumeAsset">
     createdAt?: DateTimeFilter<"ResumeAsset"> | Date | string
     updatedAt?: DateTimeFilter<"ResumeAsset"> | Date | string
   }
@@ -39275,6 +39309,7 @@ export namespace Prisma {
     mimeType: string
     sizeBytes: number
     isDefault?: boolean
+    targetedRoles?: ResumeAssetCreatetargetedRolesInput | string[]
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -39342,6 +39377,7 @@ export namespace Prisma {
     mimeType?: StringFieldUpdateOperationsInput | string
     sizeBytes?: IntFieldUpdateOperationsInput | number
     isDefault?: BoolFieldUpdateOperationsInput | boolean
+    targetedRoles?: ResumeAssetUpdatetargetedRolesInput | string[]
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -39353,6 +39389,7 @@ export namespace Prisma {
     mimeType?: StringFieldUpdateOperationsInput | string
     sizeBytes?: IntFieldUpdateOperationsInput | number
     isDefault?: BoolFieldUpdateOperationsInput | boolean
+    targetedRoles?: ResumeAssetUpdatetargetedRolesInput | string[]
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -39364,6 +39401,7 @@ export namespace Prisma {
     mimeType?: StringFieldUpdateOperationsInput | string
     sizeBytes?: IntFieldUpdateOperationsInput | number
     isDefault?: BoolFieldUpdateOperationsInput | boolean
+    targetedRoles?: ResumeAssetUpdatetargetedRolesInput | string[]
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }

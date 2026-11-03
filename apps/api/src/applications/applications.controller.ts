@@ -8,14 +8,21 @@ import {
   Param,
   Query,
   Request,
+  UseGuards,
 } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiResponse } from "@nestjs/swagger";
 import { ApplicationsService, CreateApplicationDto } from "./applications.service";
+import { DraftGenerationService, GenerateDraftDto } from "./draft-generation.service";
+import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 
 @ApiTags("applications")
 @Controller("applications")
+@UseGuards(JwtAuthGuard)
 export class ApplicationsController {
-  constructor(private applicationsService: ApplicationsService) {}
+  constructor(
+    private applicationsService: ApplicationsService,
+    private draftGenerationService: DraftGenerationService
+  ) {}
 
   @Get()
   @ApiOperation({ summary: "List applications" })
@@ -25,6 +32,47 @@ export class ApplicationsController {
     @Query("status") status?: string
   ) {
     return this.applicationsService.findAll(workspaceId, { status });
+  }
+
+  @Get("drafts/:id")
+  @ApiOperation({ summary: "Get application draft by ID" })
+  @ApiResponse({ status: 200 })
+  async getDraft(@Param("id") id: string) {
+    return this.draftGenerationService.getDraft(id);
+  }
+
+  @Post("drafts/generate")
+  @ApiOperation({ summary: "Generate tailored application draft using Claude" })
+  @ApiResponse({ status: 201 })
+  async generateDraft(@Body() dto: GenerateDraftDto) {
+    return this.draftGenerationService.generateDraft(
+      dto.jobId,
+      dto.candidateProfileId,
+      dto.tone
+    );
+  }
+
+  @Put("drafts/:id")
+  @ApiOperation({ summary: "Update application draft" })
+  @ApiResponse({ status: 200 })
+  async updateDraft(
+    @Param("id") id: string,
+    @Body()
+    dto: {
+      coverLetter?: string;
+      introMessage?: string;
+      customAnswers?: Record<string, string>;
+      resumeAssetId?: string;
+    }
+  ) {
+    return this.draftGenerationService.updateDraft(id, dto);
+  }
+
+  @Delete("drafts/:id")
+  @ApiOperation({ summary: "Delete application draft" })
+  @ApiResponse({ status: 200 })
+  async deleteDraft(@Param("id") id: string) {
+    return this.draftGenerationService.deleteDraft(id);
   }
 
   @Get(":id")
@@ -45,7 +93,7 @@ export class ApplicationsController {
   @ApiOperation({ summary: "Approve application" })
   @ApiResponse({ status: 200 })
   async approve(@Param("id") id: string, @Request() req: any) {
-    return this.applicationsService.approve(id, req.user?.id || "user-id");
+    return this.applicationsService.approve(id, req.user.id);
   }
 
   @Post(":id/reject")
@@ -76,3 +124,4 @@ export class ApplicationsController {
     return { success: true };
   }
 }
+

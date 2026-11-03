@@ -255,6 +255,7 @@ model ResumeAsset {
   mimeType        String
   sizeBytes       Int
   isDefault       Boolean  @default(false)
+  targetedRoles   String[] @default([])
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
