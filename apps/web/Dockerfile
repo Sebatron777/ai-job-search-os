@@ -13,6 +13,5 @@ RUN pnpm deploy --filter=web /prod/web
 FROM base AS web
 COPY --from=build /prod/web /prod/web
 WORKDIR /prod/web
-RUN pnpm add -g serve
-EXPOSE 8080
-CMD [ "serve", "-s", "dist", "-l", "8080" ]
+EXPOSE 3000
+CMD [ "pnpm", "start" ]
