@@ -43,3 +43,8 @@ next-env.d.ts
 *.log
 tmp/
 temp/
+
+# Generated Prisma Client & Engines
+apps/api/src/generated/
+*.dylib.node
+*.so.node
